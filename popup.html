@@ -1,0 +1,229 @@
+<html>
+<head>
+<script>
+
+var backgroundPage = chrome.extension.getBackgroundPage();
+var savedWindow;
+var savedWindowListEl, formEl, nameInput;
+
+function init() {
+	savedWindowListEl = document.getElementById("savedWindowList");
+	nameInput = document.getElementById("nameInput");	
+	formEl = document.getElementById("form");
+	
+	// populate list of windows
+	chrome.windows.getCurrent(function(currentWindow) {
+		savedWindow = backgroundPage.openWindowMap[currentWindow.id];
+		for (i in backgroundPage.savedWindowNames) {
+			name = backgroundPage.savedWindowNames[i]
+			if ((!savedWindow) || (name != savedWindow.name)){
+				w = backgroundPage.savedWindowObjects[name];
+				appendWindowToList(w);
+			}
+		}
+		if (savedWindow) {
+			appendWindowToList(savedWindow);
+		} else if (currentWindow.incognito) {
+			document.getElementById("incognitoMsg").style.display = "block";
+		} else {
+			nameInput.value = backgroundPage.DEFAULT_NAME;
+			formEl.style.display = "block";
+			nameInput.focus();
+			nameInput.select();
+		}
+	});
+}
+
+// add window to HTML list of windows
+function appendWindowToList(w) {
+	var li = document.createElement("li");
+	
+	var span = document.createElement("span");
+	span.innerText = w.getDisplayName();
+	if(savedWindow && (w.name == savedWindow.name)) {
+		innerspan = span.id = "windowName";
+		outerSpan = document.createElement("span");
+		outerSpan.appendChild(document.createTextNode("This is "));
+		outerSpan.appendChild(span);
+		li.className = "current";
+		span = outerSpan;
+	} else {	
+		if (w.id) {
+			li.className = "open";
+			// TODO: make it possible to focus the window
+		} else {
+			span.onclick = function() {
+				backgroundPage.openWindow(w);
+			};
+		}
+	}
+	li.appendChild(span);
+	
+	var del = document.createElement("span");
+	del.onclick = function() {
+		deleteSavedWindow(this, w.name);
+	};
+	del.className = "deleteButton";
+	// TODO: add icon
+	del.innerText = "[x]";
+	li.appendChild(del);
+	
+	savedWindowListEl.appendChild(li);
+}
+
+// save window in background page and update display
+function saveWindow() {
+	chrome.windows.getCurrent(function(currentWindow) {
+		// TODO: file bug to add populate parameter
+		chrome.tabs.getAllInWindow(null, function(tabs) {	
+			savedWindow = currentWindow;
+			currentWindow.tabs = tabs;
+			backgroundPage.saveWindow(currentWindow, nameInput.value);
+			formEl.style.display = "none";
+			appendWindowToList(currentWindow);
+		});
+	});
+	return false;
+}
+
+// delete a saved window
+function deleteSavedWindow(element, name) {
+	// remove from list
+	var li = element.parentNode;
+	li.parentNode.removeChild(li);
+	
+	// show form
+	nameInput.value = backgroundPage.savedWindowObjects[name].displayName;
+	formEl.style.display = "block";
+	nameInput.focus();
+	nameInput.select();
+	
+	// actually delete
+	backgroundPage.deleteSavedWindow(name);
+}
+
+</script>
+
+
+<style>
+
+body {
+	font-family: "Helvetica", "sans-serif";
+	font-size:120%;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	white-space: nowrap;
+}
+
+li {
+	list-style: none;
+}
+
+#windowName {
+	font-weight: bold;
+}
+
+#form, li {
+	padding: 5px 20px;
+}
+
+#windowName {
+	font-weight: bold;
+}
+
+li {
+	border-radius: 10px;
+	margin: 10px 5px;
+}
+
+li:hover {
+	background-color: #eee;
+}
+
+li > span {
+	color: #00f;
+}
+
+li > span:hover {
+	cursor: pointer;
+}
+
+li.open > span {
+	color: #aaa;
+}
+
+li.current > span:hover {
+	cursor: default;
+}
+
+li.current {
+	background-color: #ff9;
+}
+
+li.current > span:hover {
+	cursor: default;
+}
+
+li.current > span {
+	color: #000;
+}
+
+span.deleteButton {
+	margin-left: 20px;
+	float: right;
+	visibility: hidden;
+}
+
+li:hover > span.deleteButton {
+	visibility: visible;
+	color: #aaa;
+}
+
+li:hover > span.deleteButton:hover {
+	cursor: pointer;
+	color: red;
+}
+
+input {
+	padding: 3px;
+	font-weight: bold;
+	font-size:100%;
+	border: 3px solid #ccc;
+	border-radius: 5px;
+}
+
+input:focus {
+	outline: none;
+}
+
+#form {
+	display: none;
+}
+
+#incognitoMsg {
+	border-radius: 20px;
+	padding: 5px 20px;
+	background-color: #faa;
+	display: none;
+}
+
+</style>
+</head>
+
+
+<body onload="init();">
+
+<div>
+	<ul id="savedWindowList">
+	</ul>
+	<form id="form" onsubmit="return saveWindow();">
+		Save as: <input type="text" id="nameInput" />
+	</form>
+	<div id="incognitoMsg">Sorry, you can't save incognito windows.</div>
+</div>
+
+</body>
+</html>
