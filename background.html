@@ -150,6 +150,7 @@ function openWindow(savedWindow) {
 			if (i > 0) {
 				// TODO: add tab parameters
 				// TODO: file bug to allow window creation with multiple tabs
+				// TODO: there could be a race here, if the window gets saved
 				chrome.tabs.create({url:savedWindow.tabs[i].url});
 			}
 		}
@@ -174,6 +175,7 @@ function deleteSavedWindow(name) {
 }
 
 // adds the number of tabs in parentheses after a window's displayName
+// TODO: make this aware of pending deletions and creations
 function getDisplayName() {
 	return this.displayName + " (" + this.tabs.length + ")";
 }
@@ -191,6 +193,8 @@ function CLEAR_ALL() {
 }
 
 /* TAB EVENTS */
+// For most tab events, we simply resave the entire window.
+// While a bit more wasteful, this makes the code much more robust.
 
 function onTabAttached(tabId, info) {
 	updateWindow(info.newWindowId);
@@ -232,8 +236,10 @@ function onTabRemoved(tabId) {
 }
 chrome.tabs.onRemoved.addListener(onTabRemoved);
 
-// TODO: implement selection
-// chrome.tabs.onSelectionChanged.addListener(function(tabId, info) {});
+function onTabSelectionChanged(tabId, info) {
+	updateWindow(info.windowId);
+}
+chrome.tabs.onSelectionChanged.addListener(onTabSelectionChanged);
 
 function onTabUpdated(tabId, info, tab) {
 	windowName = windowIdToName[tab.windowId];
