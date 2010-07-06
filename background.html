@@ -43,7 +43,7 @@ chrome.windows.getAll({populate:true}, function(openWindows) {
 			delete w.id; 
 			// now, let's check if it's one of the open windows
 			for (var j in openWindows) {
-				if (windowsAreEqual(w, openWindows[j])) {
+				if (windowsAreEqual(openWindows[j], w)) {
 					w.id = openWindows[j].id;				
 					windowIdToName[w.id] = w.name;
 					break;
@@ -63,20 +63,22 @@ function restoreFromLocalStorage(key, defaultValue) {
 	}
 }
 
-// compares two window objects
-// TODO: rewrite as windowIsSavedWindow
-function windowsAreEqual(window1, window2) {
-	if (window1.incognito != window2.incognito) {
+// compares a current window to a saved window
+// we are optimistic here: as long as the tabs of the new window
+// match those of the saved window, we consider them equal
+// even if the new window has more tabs
+function windowsAreEqual(currentWindow, savedWindow) {
+	if (currentWindow.incognito != savedWindow.incognito) {
 		return false;
 	}
-	if (!window1.tabs || !window2.tabs) {
+	if (!currentWindow.tabs || !savedWindow.tabs) {
 		return false;
 	}
-	if (window1.tabs.length != window2.tabs.length) {
+	if (currentWindow.tabs.length < savedWindow.tabs.length) {
 		return false;
 	}
-	for (var i in window1.tabs) {
-		if (window1.tabs[i].url != window2.tabs[i].url) {
+	for (var i in savedWindow.tabs) {
+		if (currentWindow.tabs[i].url != savedWindow.tabs[i].url) {
 			return false;
 		}
 	}
@@ -257,7 +259,7 @@ chrome.tabs.onUpdated.addListener(onTabUpdated);
 function onWindowCreated(w) {
 	for (var i in savedWindows) {
 		savedWindow = savedWindows[i];
-		if (windowsAreEqual(savedWindow,w)) {
+		if (windowsAreEqual(w, savedWindow)) {
 			savedWindow.id = w.id;
 			windowIdToName[w.id] = savedWindow.name;
 		}
