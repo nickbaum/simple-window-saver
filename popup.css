@@ -1,0 +1,114 @@
+/* TODO: add animations */
+
+body {
+	font-family: "Helvetica", "sans-serif";
+	font-size: 120%;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	white-space: nowrap;
+}
+
+li {
+	list-style: none;
+}
+
+#windowName {
+	font-weight: bold;
+}
+
+#form, li {
+	padding: 5px 10px;
+}
+
+#windowName {
+	font-weight: bold;
+}
+
+li {
+	border-radius: 10px;
+	margin: 10px 5px;
+}
+
+li:hover {
+	background-color: #eee;
+}
+
+li > span {
+	color: #00f;
+}
+
+li > span:hover {
+	cursor: pointer;
+}
+
+li.open > span {
+	color: #aaa;
+}
+
+li.current > span:hover {
+	cursor: default;
+}
+
+li.current {
+	background-color: #ff9;
+}
+
+li.current > span:hover {
+	cursor: default;
+}
+
+li.current > span {
+	color: #000;
+}
+
+span.deleteButton {
+	margin-left: 20px;
+	float: right;
+	visibility: hidden;
+	background-color: #fcc;
+	text-align: center;
+	border-radius: 10px;
+	width: 20px;
+	height: 20px;
+	line-height: 16px;
+	font-weight: bold;
+	position: relative;
+	top: 1px;
+}
+
+li:hover > span.deleteButton {
+	visibility: visible;
+	color: #white;
+}
+
+li:hover > span.deleteButton:hover {
+	cursor: pointer;
+	background-color: #f66;
+}
+
+input {
+	padding: 3px;
+	font-weight: bold;
+	font-size:100%;
+	border: 3px solid #ccc;
+	border-radius: 5px;
+}
+
+input:focus {
+	outline: none;
+}
+
+#form {
+	display: none;
+	margin: 5px;
+}
+
+#incognitoMsg {
+	border-radius: 20px;
+	padding: 5px 20px;
+	background-color: #faa;
+	display: none;
+}

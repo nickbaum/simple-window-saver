@@ -1,5 +1,8 @@
 <html>
 <head>
+
+<link rel="stylesheet" type="text/css" href="popup.css" />
+
 <script type="text/javascript">
 
 var backgroundPage = chrome.extension.getBackgroundPage();
@@ -67,7 +70,7 @@ function appendWindowToList(w, currentWindowName) {
 	};
 	del.className = "deleteButton";
 	// TODO: add icon
-	del.innerText = "[x]";
+	del.innerHTML = "&times;";
 	li.appendChild(del);
 	
 	savedWindowListEl.appendChild(li);
@@ -109,113 +112,6 @@ function deleteSavedWindow(element, name) {
 
 </script>
 
-
-<style type="text/css">
-
-body {
-	font-family: "Helvetica", "sans-serif";
-	font-size:120%;
-}
-
-* {
-	margin: 0;
-	padding: 0;
-	white-space: nowrap;
-}
-
-li {
-	list-style: none;
-}
-
-#windowName {
-	font-weight: bold;
-}
-
-#form, li {
-	padding: 5px 20px;
-}
-
-#windowName {
-	font-weight: bold;
-}
-
-li {
-	border-radius: 10px;
-	margin: 10px 5px;
-}
-
-li:hover {
-	background-color: #eee;
-}
-
-li > span {
-	color: #00f;
-}
-
-li > span:hover {
-	cursor: pointer;
-}
-
-li.open > span {
-	color: #aaa;
-}
-
-li.current > span:hover {
-	cursor: default;
-}
-
-li.current {
-	background-color: #ff9;
-}
-
-li.current > span:hover {
-	cursor: default;
-}
-
-li.current > span {
-	color: #000;
-}
-
-span.deleteButton {
-	margin-left: 20px;
-	float: right;
-	visibility: hidden;
-}
-
-li:hover > span.deleteButton {
-	visibility: visible;
-	color: #aaa;
-}
-
-li:hover > span.deleteButton:hover {
-	cursor: pointer;
-	color: red;
-}
-
-input {
-	padding: 3px;
-	font-weight: bold;
-	font-size:100%;
-	border: 3px solid #ccc;
-	border-radius: 5px;
-}
-
-input:focus {
-	outline: none;
-}
-
-#form {
-	display: none;
-}
-
-#incognitoMsg {
-	border-radius: 20px;
-	padding: 5px 20px;
-	background-color: #faa;
-	display: none;
-}
-
-</style>
 </head>
 
 
