@@ -76,7 +76,6 @@ function appendWindowToList(w, currentWindowName) {
 // save window in background page and update display
 function saveWindow() {
 	chrome.windows.getCurrent(function(w) {
-		// TODO: file bug to add populate parameter
 		chrome.tabs.getAllInWindow(null, function(tabs) {	
 			w.tabs = tabs;
 			w = backgroundPage.saveWindow(w, nameInput.value);

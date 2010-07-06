@@ -24,7 +24,6 @@ var windowIdToName = new Object();
 
 // Unfortunately, removing a tab doesn't give us a windowId
 // so we need to keep track of that mapping.
-// TODO: file a bug to get the oldWindowId
 var tabIdToWindowId = new Object();
 
 // TODO: add badge
@@ -110,7 +109,6 @@ function saveWindow(w, displayName) {
 function updateWindow(windowId) {
 	if (windowIdToName[windowId]) {
 		chrome.windows.get(windowId, function(w) {
-			// TODO: file bug to add populate parameter
 			chrome.tabs.getAllInWindow(windowId, function(tabs) {
 				w.tabs = tabs;
 				var name = windowIdToName[windowId];
@@ -151,7 +149,6 @@ function openWindow(savedWindow) {
 		for (var i in savedWindow.tabs) {
 			if (i > 0) {
 				// TODO: add tab parameters
-				// TODO: file bug to allow window creation with multiple tabs
 				// TODO: there could be a race here, if the window gets saved
 				chrome.tabs.create({url:savedWindow.tabs[i].url});
 			}
@@ -277,9 +274,16 @@ function onWindowRemoved(windowId) {
 }
 chrome.windows.onRemoved.addListener(onWindowRemoved);
 
-/* TODO: send feedback KATHY
+/* TODO: send feedback
+
+	KATHY
 	delete window triggers delete tabs
 	create tabs comes back to you
+	
+	EXTENSIONS TEAM
+	onTabRemoved should include the oldWindowId
+	chrome.windows.get should include the populate parameter
+	chrome.windows.create should support a tab array
 */
 
 </script>
