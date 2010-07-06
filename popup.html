@@ -13,11 +13,11 @@ function init() {
 	
 	// populate list of windows
 	chrome.windows.getCurrent(function(currentWindow) {
-		savedWindow = backgroundPage.openWindowMap[currentWindow.id];
+		savedWindow = backgroundPage.openWindowIdToSavedWindow[currentWindow.id];
 		for (i in backgroundPage.savedWindowNames) {
 			name = backgroundPage.savedWindowNames[i]
 			if ((!savedWindow) || (name != savedWindow.name)){
-				w = backgroundPage.savedWindowObjects[name];
+				w = backgroundPage.savedWindows[name];
 				appendWindowToList(w);
 			}
 		}
@@ -93,7 +93,7 @@ function deleteSavedWindow(element, name) {
 	li.parentNode.removeChild(li);
 	
 	// show form
-	nameInput.value = backgroundPage.savedWindowObjects[name].displayName;
+	nameInput.value = backgroundPage.savedWindows[name].displayName;
 	formEl.style.display = "block";
 	nameInput.focus();
 	nameInput.select();
