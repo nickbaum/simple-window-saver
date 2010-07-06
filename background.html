@@ -155,7 +155,8 @@ function CLEAR_ALL() {
 
 /* TAB EVENTS */
 
-chrome.tabs.onAttached.addListener(function(tabId, info) {
+chrome.tabs.onAttached.addListener(
+function onTabAttached(tabId, info) {
 	w = openWindowMap[info.newWindowId];
 	if (w) {
 		chrome.tabs.get(tabId, function(tab) {
@@ -165,9 +166,10 @@ chrome.tabs.onAttached.addListener(function(tabId, info) {
 			// TODO: what do we do if this was the last tab of a saved window?
 		});
 	}
-});
+}
+chrome.tabs.onAttached.addListener(onTabAttached);
 
-chrome.tabs.onCreated.addListener(function(tab) {
+function onTabCreated(tab) {
 	w = openWindowMap[tab.windowId];
 	if (w) {
 		// only add this tab to the state if it's not already there
@@ -180,27 +182,30 @@ chrome.tabs.onCreated.addListener(function(tab) {
 			tabIdToWindowId[tab.id] = tab.windowId;
 		}
 	}
-});
+}
+chrome.tabs.onCreated.addListener(onTabCreated);
 
-chrome.tabs.onDetached.addListener(function(tabId, info) {
+function onTabDetached(tabId, info) {
 	w = openWindowMap[info.oldWindowId];
 	if (w) {
 		w.tabs.splice(info.oldPosition, 1);
 		localStorage[w.name] = JSON.stringify(w);
 		delete tabIdToWindowId[tabId];
 	}
-});
+}
+chrome.tabs.onDetached.addListener(onTabDetached);
 
-chrome.tabs.onMoved.addListener(function(tabId, info) {
+function onTabMoved(tabId, info) {
 	w = openWindowMap[info.windowId];
 	if (w) {
 		tab = w.tabs.splice(info.fromIndex, 1);
 		w.tabs.splice(info.toIndex, 0, tab);
 		localStorage[w.name] = JSON.stringify(w);
 	}
-});
+}
+chrome.tabs.onMoved.addListener(onTabMoved);
 
-chrome.tabs.onRemoved.addListener(function(tabId) {
+function onTabRemoved(tabId) {
 	// because closing the window triggers tab deletion events
 	// we set a timeout so the window removal event has the time to trigger
 	// and we don't accidentally delete a saved window
@@ -219,23 +224,25 @@ chrome.tabs.onRemoved.addListener(function(tabId) {
 			// TODO: can we handle the case when we close the last tab
 		}
 	}, 5000);
-});
+}
+chrome.tabs.onRemoved.addListener(onTabRemoved);
 
 // TODO: implement selection
 // chrome.tabs.onSelectionChanged.addListener(function(tabId, info) {});
 
-chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
+function onTabUpdated(tabId, info, tab) {
 	w = openWindowMap[tab.windowId];
 	if (w) {
 		w.tabs[tab.index] = tab;
 		localStorage[w.name] = JSON.stringify(w);
 	}
-});
+}
+chrome.tabs.onUpdated.addListener(onTabUpdated);
 
 /* WINDOW EVENTS */
 
 // TODO: do we need this?
-chrome.windows.onCreated.addListener(function(w) {
+function onWindowCreated(w) {
 	for (i in savedWindowObjects) {
 		savedWindow = savedWindowObjects[i];
 		if (windowsAreEqual(savedWindow,w)) {
@@ -243,15 +250,17 @@ chrome.windows.onCreated.addListener(function(w) {
 			openWindowMap[w.id] = savedWindow;
 		}
 	}
-});
+}
+chrome.windows.onCreated.addListener(onWindowCreated);
 
-chrome.windows.onRemoved.addListener(function(windowId) {
+function onWindowRemoved(windowId) {
 	w = openWindowMap[windowId];
 	if (w) {
 		delete w.id;
 		delete openWindowMap[windowId];
 	}
-});
+}
+chrome.windows.onRemoved.addListener(onWindowRemoved);
 
 /* TODO: send feedback KATHY
 	delete window triggers delete tabs
