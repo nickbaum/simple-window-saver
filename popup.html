@@ -3,7 +3,6 @@
 <script>
 
 var backgroundPage = chrome.extension.getBackgroundPage();
-var savedWindow; // TODO: remove this variable
 var savedWindowListEl, formEl, nameInput;
 
 function init() {
@@ -14,16 +13,15 @@ function init() {
 	// populate list of windows
 	chrome.windows.getCurrent(function(currentWindow) {
 		windowName = backgroundPage.windowIdToName[currentWindow.id];
-		savedWindow = backgroundPage.savedWindows[windowName];
 		for (i in backgroundPage.savedWindowNames) {
 			name = backgroundPage.savedWindowNames[i]
-			if ((!savedWindow) || (name != savedWindow.name)){
+			if (name != windowName){
 				w = backgroundPage.savedWindows[name];
-				appendWindowToList(w);
+				appendWindowToList(w, windowName);
 			}
 		}
-		if (savedWindow) {
-			appendWindowToList(savedWindow);
+		if (windowName) {
+			appendWindowToList(backgroundPage.savedWindows[windowName], windowName);
 		} else if (currentWindow.incognito) {
 			document.getElementById("incognitoMsg").style.display = "block";
 		} else {
@@ -36,12 +34,12 @@ function init() {
 }
 
 // add window to HTML list of windows
-function appendWindowToList(w) {
+function appendWindowToList(w, currentWindowName) {
 	var li = document.createElement("li");
 	
 	var span = document.createElement("span");
 	span.innerText = w.getDisplayName();
-	if(savedWindow && (w.name == savedWindow.name)) {
+	if(w.name == currentWindowName) {
 		innerspan = span.id = "windowName";
 		outerSpan = document.createElement("span");
 		outerSpan.appendChild(document.createTextNode("This is "));
@@ -77,11 +75,10 @@ function saveWindow() {
 	chrome.windows.getCurrent(function(currentWindow) {
 		// TODO: file bug to add populate parameter
 		chrome.tabs.getAllInWindow(null, function(tabs) {	
-			savedWindow = currentWindow;
 			currentWindow.tabs = tabs;
 			backgroundPage.saveWindow(currentWindow, nameInput.value);
 			formEl.style.display = "none";
-			appendWindowToList(currentWindow);
+			appendWindowToList(currentWindow, nameInput.value);
 		});
 	});
 	return false;
