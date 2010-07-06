@@ -160,6 +160,8 @@ function deleteSavedWindow(name) {
 	delete windowIdToName[w.id];
 	
 	delete savedWindows[name];
+	
+	return w.displayName;
 }
 
 // adds the number of tabs in parentheses after a window's displayName

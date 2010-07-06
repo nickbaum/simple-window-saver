@@ -12,16 +12,18 @@ function init() {
 	
 	// populate list of windows
 	chrome.windows.getCurrent(function(currentWindow) {
-		windowName = backgroundPage.windowIdToName[currentWindow.id];
-		for (i in backgroundPage.savedWindowNames) {
-			name = backgroundPage.savedWindowNames[i]
+		var windowName = backgroundPage.windowIdToName[currentWindow.id];
+		var savedWindows = backgroundPage.savedWindows;
+		var savedWindowNames = backgroundPage.savedWindowNames;
+		for (i in savedWindowNames) {
+			name = savedWindowNames[i]
 			if (name != windowName){
-				w = backgroundPage.savedWindows[name];
+				w = savedWindows[name];
 				appendWindowToList(w, windowName);
 			}
 		}
 		if (windowName) {
-			appendWindowToList(backgroundPage.savedWindows[windowName], windowName);
+			appendWindowToList(savedWindows[windowName], windowName);
 		} else if (currentWindow.incognito) {
 			document.getElementById("incognitoMsg").style.display = "block";
 		} else {
@@ -90,14 +92,18 @@ function deleteSavedWindow(element, name) {
 	var li = element.parentNode;
 	li.parentNode.removeChild(li);
 	
-	// show form
-	nameInput.value = backgroundPage.savedWindows[name].displayName;
-	formEl.style.display = "block";
-	nameInput.focus();
-	nameInput.select();
+	// delete (returns display name)
+	var name = backgroundPage.deleteSavedWindow(name);
 	
-	// actually delete
-	backgroundPage.deleteSavedWindow(name);
+	// show form if this was the current window
+	if (li.className == "current") {
+ 		nameInput.value = name;
+		formEl.style.display = "block";
+		nameInput.focus();
+		nameInput.select();
+	}
+	
+	// TODO: add undo
 }
 
 </script>
