@@ -15,7 +15,7 @@ function init() {
 		var windowName = backgroundPage.windowIdToName[currentWindow.id];
 		var savedWindows = backgroundPage.savedWindows;
 		var savedWindowNames = backgroundPage.savedWindowNames;
-		for (i in savedWindowNames) {
+		for (var i in savedWindowNames) {
 			name = savedWindowNames[i]
 			if (name != windowName){
 				w = savedWindows[name];
@@ -41,7 +41,7 @@ function appendWindowToList(w, currentWindowName) {
 	
 	var span = document.createElement("span");
 	span.innerText = w.getDisplayName();
-	if(w.name == currentWindowName) {
+	if (w.name == currentWindowName) {
 		innerspan = span.id = "windowName";
 		outerSpan = document.createElement("span");
 		outerSpan.appendChild(document.createTextNode("This is "));

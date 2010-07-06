@@ -30,7 +30,7 @@ var tabIdToWindowId = new Object();
 // populate savedWindows from local storage
 // as we go, try matching them to open windows.
 chrome.windows.getAll({populate:true}, function(openWindows) {
-	for (i in savedWindowNames) {
+	for (var i in savedWindowNames) {
 		var name = savedWindowNames[i];
 		// TODO: handle non-existent window object more gracefully
 		w  = restoreFromLocalStorage(name);
@@ -40,7 +40,7 @@ chrome.windows.getAll({populate:true}, function(openWindows) {
 			// by default, we assume the window is closed (id is undefined)
 			delete w.id; 
 			// now, let's check if it's one of the open windows
-			for (j in openWindows) {
+			for (var j in openWindows) {
 				if (windowsAreEqual(w, openWindows[j])) {
 					w.id = openWindows[j].id;				
 					windowIdToName[w.id] = w.name;
@@ -66,13 +66,13 @@ function windowsAreEqual(window1, window2) {
 	if (window1.incognito != window2.incognito) {
 		return false;
 	}
-	if(!window1.tabs || !window2.tabs) {
+	if (!window1.tabs || !window2.tabs) {
 		return false;
 	}
 	if (window1.tabs.length != window2.tabs.length) {
 		return false;
 	}
-	for (i in window1.tabs) {
+	for (var i in window1.tabs) {
 		if (window1.tabs[i].url != window2.tabs[i].url) {
 			return false;
 		}
@@ -104,7 +104,7 @@ function saveWindow(w, name) {
 
 // update a saved window
 function updateWindow(windowId) {
-	if(windowIdToName[windowId]) {
+	if (windowIdToName[windowId]) {
 		chrome.windows.get(windowId, function(newWindow) {
 			chrome.tabs.getAllInWindow(windowId, function(tabs) {
 				windowName = windowIdToName[windowId];
@@ -121,7 +121,7 @@ function updateWindow(windowId) {
 				localStorage[windowName] = JSON.stringify(newWindow);
 	
 				// update tabIdToWindowId
-				for (i in newWindow.tabs) {
+				for (var i in newWindow.tabs) {
 					tabIdToWindowId[newWindow.tabs[i].id] = newWindow.id;
 				}
 			});
@@ -138,7 +138,7 @@ function openWindow(savedWindow) {
 	chrome.windows.create({url:savedWindow.tabs[0].url}, function(w){
 		windowIdToName[w.id] = savedWindow.name;
 		savedWindow.id = w.id;
-		for (i in savedWindow.tabs) {
+		for (var i in savedWindow.tabs) {
 			if (i > 0) {
 				// TODO: add tab parameters
 				// TODO: file bug to allow window creation with multiple tabs
@@ -171,7 +171,7 @@ function getDisplayName() {
 
 // wipe all the state
 function CLEAR_ALL() {
-	for (i in savedWindowNames) {
+	for (var i in savedWindowNames) {
 		delete localStorage[savedWindowNames[i]];
 	}
 	delete localStorage["savedWindowNames"];
@@ -191,7 +191,7 @@ chrome.tabs.onAttached.addListener(onTabAttached);
 
 function onTabCreated(tab) {
 	windowWasUpdated = updateWindow(tab.windowId);
-	if(windowWasUpdated) {
+	if (windowWasUpdated) {
 		tabIdToWindowId[tab.id] = tab.windowId;
 	}
 }
@@ -240,7 +240,7 @@ chrome.tabs.onUpdated.addListener(onTabUpdated);
 
 // TODO: do we need this?
 function onWindowCreated(w) {
-	for (i in savedWindows) {
+	for (var i in savedWindows) {
 		savedWindow = savedWindows[i];
 		if (windowsAreEqual(savedWindow,w)) {
 			savedWindow.id = w.id;
