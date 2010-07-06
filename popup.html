@@ -12,18 +12,19 @@ function init() {
 	
 	// populate list of windows
 	chrome.windows.getCurrent(function(currentWindow) {
-		var windowName = backgroundPage.windowIdToName[currentWindow.id];
+		var currentWindowName = backgroundPage.windowIdToName[currentWindow.id];
 		var savedWindows = backgroundPage.savedWindows;
 		var savedWindowNames = backgroundPage.savedWindowNames;
 		for (var i in savedWindowNames) {
-			name = savedWindowNames[i]
-			if (name != windowName){
-				w = savedWindows[name];
-				appendWindowToList(w, windowName);
+			var name = savedWindowNames[i];
+			if (name != currentWindowName){
+				var w = savedWindows[name];
+				appendWindowToList(w, currentWindowName);
 			}
 		}
-		if (windowName) {
-			appendWindowToList(savedWindows[windowName], windowName);
+		if (currentWindowName) {
+			var w = savedWindows[currentWindowName];
+			appendWindowToList(w, currentWindowName);
 		} else if (currentWindow.incognito) {
 			document.getElementById("incognitoMsg").style.display = "block";
 		} else {
@@ -74,13 +75,13 @@ function appendWindowToList(w, currentWindowName) {
 
 // save window in background page and update display
 function saveWindow() {
-	chrome.windows.getCurrent(function(currentWindow) {
+	chrome.windows.getCurrent(function(w) {
 		// TODO: file bug to add populate parameter
 		chrome.tabs.getAllInWindow(null, function(tabs) {	
-			currentWindow.tabs = tabs;
-			backgroundPage.saveWindow(currentWindow, nameInput.value);
+			w.tabs = tabs;
+			w = backgroundPage.saveWindow(w, nameInput.value);
 			formEl.style.display = "none";
-			appendWindowToList(currentWindow, nameInput.value);
+			appendWindowToList(w, nameInput.value);
 		});
 	});
 	return false;
@@ -92,16 +93,17 @@ function deleteSavedWindow(element, name) {
 	var li = element.parentNode;
 	li.parentNode.removeChild(li);
 	
-	// delete (returns display name)
-	var name = backgroundPage.deleteSavedWindow(name);
-	
 	// show form if this was the current window
 	if (li.className == "current") {
- 		nameInput.value = name;
+		var displayName = backgroundPage.savedWindows[name].displayName;
+ 		nameInput.value = displayName;
 		formEl.style.display = "block";
 		nameInput.focus();
 		nameInput.select();
 	}
+
+	// actually perform the deletion
+	backgroundPage.deleteSavedWindow(name);
 	
 	// TODO: add undo
 }

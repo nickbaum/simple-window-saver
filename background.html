@@ -19,10 +19,12 @@ var savedWindowNames = restoreFromLocalStorage("savedWindowNames", new Array());
 var savedWindows = new Object();
 
 // maps open windowIds to saved windows.
+// TODO: can we key everything by id rather than name?
 var windowIdToName = new Object();
 
 // Unfortunately, removing a tab doesn't give us a windowId
 // so we need to keep track of that mapping.
+// TODO: file a bug to get the oldWindowId
 var tabIdToWindowId = new Object();
 
 // TODO: add badge
@@ -33,7 +35,7 @@ chrome.windows.getAll({populate:true}, function(openWindows) {
 	for (var i in savedWindowNames) {
 		var name = savedWindowNames[i];
 		// TODO: handle non-existent window object more gracefully
-		w  = restoreFromLocalStorage(name);
+		var w  = restoreFromLocalStorage(name);
 		if (w) {
 			savedWindows[name] = w;
 			w.getDisplayName = getDisplayName;
@@ -62,6 +64,7 @@ function restoreFromLocalStorage(key, defaultValue) {
 }
 
 // compares two window objects
+// TODO: rewrite as windowIsSavedWindow
 function windowsAreEqual(window1, window2) {
 	if (window1.incognito != window2.incognito) {
 		return false;
@@ -81,55 +84,60 @@ function windowsAreEqual(window1, window2) {
 }
 
 // save a window
-// TODO: refactor to re-use updateWindow
-function saveWindow(w, name) {
-	name = (name == "") ? DEFAULT_NAME : name; 
+// returns the saved window object
+function saveWindow(w, displayName) {
+	displayName = (displayName == "") ? DEFAULT_NAME : displayName; 
 	// handle duplicate names
+	var name = displayName;
 	var n = 0;
-	w.displayName = name;
 	while(savedWindows[name]) {
-		name = w.displayName + n;
+		name = displayName + n;
 		n++;
 	}
-	w.name = name;
-	w.getDisplayName = getDisplayName;
 	
-	// update variables and save to local storage
-	savedWindows[name] = w;
-	localStorage[name] = JSON.stringify(w);
+	// add window to indexes
 	savedWindowNames.push(name);
 	localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
-	windowIdToName[w.id] = w.name;
+	windowIdToName[w.id] = name;
+	
+	return storeWindow(w, name, displayName);
 }
 
 // update a saved window
+// returns true if the window existed, false otherwise
 function updateWindow(windowId) {
 	if (windowIdToName[windowId]) {
-		chrome.windows.get(windowId, function(newWindow) {
+		chrome.windows.get(windowId, function(w) {
+			// TODO: file bug to add populate parameter
 			chrome.tabs.getAllInWindow(windowId, function(tabs) {
-				windowName = windowIdToName[windowId];
-				w = savedWindows[windowName];
-				
-				// populate new window
-				newWindow.name = windowName;
-				newWindow.displayName = w.displayName;
-				newWindow.getDisplayName = getDisplayName;
-				newWindow.tabs = tabs;
-				
-				// save new window
-				savedWindows[windowName] = newWindow;
-				localStorage[windowName] = JSON.stringify(newWindow);
-	
-				// update tabIdToWindowId
-				for (var i in newWindow.tabs) {
-					tabIdToWindowId[newWindow.tabs[i].id] = newWindow.id;
-				}
+				w.tabs = tabs;
+				var name = windowIdToName[windowId];
+				var displayName = savedWindows[name].displayName;
+				storeWindow(w, name, displayName);
 			});
 		});
 		return true;
 	} else {
 		return false;
 	}
+}
+
+// store a window object
+// returns the stored window
+function storeWindow(w, name, displayName) {
+	w.name = name;
+	w.displayName = displayName;
+	w.getDisplayName = getDisplayName;
+	
+	savedWindows[name] = w;
+	localStorage[name] = JSON.stringify(w);
+	
+	// update tabIdToWindowId
+	for (var i in w.tabs) {
+		tabIdToWindowId[w.tabs[i].id] = w.id;
+	}
+	
+	return w;
 }
 
 // restore a previously saved window
@@ -150,6 +158,7 @@ function openWindow(savedWindow) {
 }
 
 // removed a saved window
+// returns the displayName of the removed window
 function deleteSavedWindow(name) {
 	delete localStorage[name];
 	
