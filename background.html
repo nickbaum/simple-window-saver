@@ -19,7 +19,7 @@ var savedWindowNames = restoreFromLocalStorage("savedWindowNames", new Array());
 var savedWindows = new Object();
 
 // maps open windowIds to saved windows.
-var openWindowIdToSavedWindow = new Object();
+var windowIdToName = new Object();
 
 // Unfortunately, removing a tab doesn't give us a windowId
 // so we need to keep track of that mapping.
@@ -43,7 +43,7 @@ chrome.windows.getAll({populate:true}, function(openWindows) {
 			for (j in openWindows) {
 				if (windowsAreEqual(w, openWindows[j])) {
 					w.id = openWindows[j].id;				
-					openWindowIdToSavedWindow[w.id] = w;
+					windowIdToName[w.id] = w.name;
 					break;
 				}
 			}
@@ -81,6 +81,7 @@ function windowsAreEqual(window1, window2) {
 }
 
 // save a window
+// TODO: refactor to re-use updateWindow
 function saveWindow(w, name) {
 	name = (name == "") ? DEFAULT_NAME : name; 
 	// handle duplicate names
@@ -98,11 +99,36 @@ function saveWindow(w, name) {
 	localStorage[name] = JSON.stringify(w);
 	savedWindowNames.push(name);
 	localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
-	openWindowIdToSavedWindow[w.id] = w;
+	windowIdToName[w.id] = w.name;
+}
+
+// update a saved window
+function updateWindow(windowId) {
+	if(windowIdToName[windowId]) {
+		chrome.windows.get(windowId, function(newWindow) {
+			chrome.tabs.getAllInWindow(windowId, function(tabs) {
+				windowName = windowIdToName[windowId];
+				w = savedWindows[windowName];
+				
+				// populate new window
+				newWindow.name = windowName;
+				newWindow.displayName = w.displayName;
+				newWindow.getDisplayName = getDisplayName;
+				newWindow.tabs = tabs;
+				
+				// save new window
+				savedWindows[windowName] = newWindow;
+				localStorage[windowName] = JSON.stringify(newWindow);
 	
-	// update tabIdToWindowId
-	for (i in w.tabs) {
-		tabIdToWindowId[w.tabs[i].id] = w.id;
+				// update tabIdToWindowId
+				for (i in newWindow.tabs) {
+					tabIdToWindowId[newWindow.tabs[i].id] = newWindow.id;
+				}
+			});
+		});
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -110,7 +136,7 @@ function saveWindow(w, name) {
 function openWindow(savedWindow) {
 	// TODO: add window parameters
 	chrome.windows.create({url:savedWindow.tabs[0].url}, function(w){
-		openWindowIdToSavedWindow[w.id] = savedWindow;
+		windowIdToName[w.id] = savedWindow.name;
 		savedWindow.id = w.id;
 		for (i in savedWindow.tabs) {
 			if (i > 0) {
@@ -131,9 +157,9 @@ function deleteSavedWindow(name) {
 	localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
 	
 	w = savedWindows[name];
-	delete savedWindows[name];
+	delete windowIdToName[w.id];
 	
-	delete openWindowIdToSavedWindow[w.id];
+	delete savedWindows[name];
 }
 
 // adds the number of tabs in parentheses after a window's displayName
@@ -149,59 +175,36 @@ function CLEAR_ALL() {
 	delete localStorage["savedWindowNames"];
 	savedWindowNames = restoreFromLocalStorage("savedWindowNames", new Array());
 	savedWindows = new Object();
-	openWindowIdToSavedWindow = new Object();
+	windowIdToName = new Object();
 	tabIdToWindowId = new Object();
 }
 
 /* TAB EVENTS */
 
-chrome.tabs.onAttached.addListener(
 function onTabAttached(tabId, info) {
-	w = openWindowIdToSavedWindow[info.newWindowId];
-	if (w) {
-		chrome.tabs.get(tabId, function(tab) {
-			w.tabs.splice(info.newPosition, 0, tab);
-			localStorage[w.name] = JSON.stringify(w);
-			tabIdToWindowId[tabId] = info.newWindowId;
-			// TODO: what do we do if this was the last tab of a saved window?
-		});
-	}
+	updateWindow(info.newWindowId);
+	// TODO: what do we do if this was the last tab of a saved window?
 }
 chrome.tabs.onAttached.addListener(onTabAttached);
 
 function onTabCreated(tab) {
-	w = openWindowIdToSavedWindow[tab.windowId];
-	if (w) {
-		// only add this tab to the state if it's not already there
-		// there is probably an obscure bug here
-		// if you open several copies of the same windo
-		if((tab.index >= w.tabs.length)
-				|| (w.tabs[tab.index].url != tab.url)) {
-			w.tabs.splice(tab.index, 0, tab);
-			localStorage[w.name] = JSON.stringify(w);
-			tabIdToWindowId[tab.id] = tab.windowId;
-		}
+	windowWasUpdated = updateWindow(tab.windowId);
+	if(windowWasUpdated) {
+		tabIdToWindowId[tab.id] = tab.windowId;
 	}
 }
 chrome.tabs.onCreated.addListener(onTabCreated);
 
 function onTabDetached(tabId, info) {
-	w = openWindowIdToSavedWindow[info.oldWindowId];
-	if (w) {
-		w.tabs.splice(info.oldPosition, 1);
-		localStorage[w.name] = JSON.stringify(w);
+	windowWasSaved = updateWindow(info.oldWindowId);
+	if (windowWasSaved) {
 		delete tabIdToWindowId[tabId];
 	}
 }
 chrome.tabs.onDetached.addListener(onTabDetached);
 
 function onTabMoved(tabId, info) {
-	w = openWindowIdToSavedWindow[info.windowId];
-	if (w) {
-		tab = w.tabs.splice(info.fromIndex, 1);
-		w.tabs.splice(info.toIndex, 0, tab);
-		localStorage[w.name] = JSON.stringify(w);
-	}
+	updateWindow(info.windowId);
 }
 chrome.tabs.onMoved.addListener(onTabMoved);
 
@@ -212,17 +215,8 @@ function onTabRemoved(tabId) {
 	// TODO: improve this algorithm
 	setTimeout(function(){
 		windowId = tabIdToWindowId[tabId];
-		w = openWindowIdToSavedWindow[windowId];
-		if (w) {
-			for (i in w.tabs) {
-				if (w.tabs[i].id == tabId) {
-					w.tabs.splice(i, 1);
-					localStorage[w.name] = JSON.stringify(w);
-					break;
-				}
-			}
-			// TODO: can we handle the case when we close the last tab
-		}
+		updateWindow(windowId);
+		// TODO: can we handle the case when we close the last tab
 	}, 5000);
 }
 chrome.tabs.onRemoved.addListener(onTabRemoved);
@@ -231,8 +225,9 @@ chrome.tabs.onRemoved.addListener(onTabRemoved);
 // chrome.tabs.onSelectionChanged.addListener(function(tabId, info) {});
 
 function onTabUpdated(tabId, info, tab) {
-	w = openWindowIdToSavedWindow[tab.windowId];
-	if (w) {
+	windowName = windowIdToName[tab.windowId];
+	if (windowName) {
+		w = savedWindows[windowName];
 		w.tabs[tab.index] = tab;
 		localStorage[w.name] = JSON.stringify(w);
 	}
@@ -247,17 +242,18 @@ function onWindowCreated(w) {
 		savedWindow = savedWindows[i];
 		if (windowsAreEqual(savedWindow,w)) {
 			savedWindow.id = w.id;
-			openWindowIdToSavedWindow[w.id] = savedWindow;
+			windowIdToName[w.id] = savedWindow.name;
 		}
 	}
 }
 chrome.windows.onCreated.addListener(onWindowCreated);
 
 function onWindowRemoved(windowId) {
-	w = openWindowIdToSavedWindow[windowId];
-	if (w) {
+	windowName = windowIdToName[windowId];
+	if (windowName) {
+		w = savedWindows[windowName];
 		delete w.id;
-		delete openWindowIdToSavedWindow[windowId];
+		delete windowIdToName[windowId];
 	}
 }
 chrome.windows.onRemoved.addListener(onWindowRemoved);

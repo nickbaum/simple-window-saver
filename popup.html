@@ -3,7 +3,7 @@
 <script>
 
 var backgroundPage = chrome.extension.getBackgroundPage();
-var savedWindow;
+var savedWindow; // TODO: remove this variable
 var savedWindowListEl, formEl, nameInput;
 
 function init() {
@@ -13,7 +13,8 @@ function init() {
 	
 	// populate list of windows
 	chrome.windows.getCurrent(function(currentWindow) {
-		savedWindow = backgroundPage.openWindowIdToSavedWindow[currentWindow.id];
+		windowName = backgroundPage.windowIdToName[currentWindow.id];
+		savedWindow = backgroundPage.savedWindows[windowName];
 		for (i in backgroundPage.savedWindowNames) {
 			name = backgroundPage.savedWindowNames[i]
 			if ((!savedWindow) || (name != savedWindow.name)){
