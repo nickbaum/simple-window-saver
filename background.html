@@ -13,6 +13,8 @@ P1: massive refactor to store data in bookmarks
 	Cons: complexity, hard to store extra info, folders
 P1: add a proper icon
 P1: figure out what happens if there are two saved windows with the same content
+TODO: create release script (remove debug, compile javascript/CSS, etc)
+TODO: split background.HTML into multiple JS files (closure?)
 
 */
 
@@ -150,6 +152,12 @@ function storeWindow(w, name, displayName) {
 
 // restore a previously saved window
 function openWindow(savedWindow) {
+	chrome.tabs.getSelected(null, function(tab){
+		console.log(tab);
+		if(tab.url == "chrome://newtab/") {
+			chrome.tabs.remove(tab.id);
+		}
+	});
 	chrome.windows.create({url:savedWindow.tabs[0].url}, function(w){
 		windowIdToName[w.id] = savedWindow.name;
 		savedWindow.id = w.id;
@@ -160,7 +168,6 @@ function openWindow(savedWindow) {
 			}
 		}
 	});
-	// P1: close the window this was called from if it has a single empty tab
 }
 
 // removed a saved window
