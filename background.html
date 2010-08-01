@@ -8,7 +8,11 @@ The background page is responsible for the following:
 * listening for window/tab events to keep our state up to date.
 * saving, opening and deleting windows actions from the popups.
 
-TODO: massive refactor to store data in bookmarks
+P1: massive refactor to store data in bookmarks
+	Pros: adding/merging/reorganizing, sync
+	Cons: complexity, hard to store extra info, folders
+P1: add a proper icon
+P1: figure out what happens if there are two saved windows with the same content
 
 */
 
@@ -32,7 +36,7 @@ var tabIdToWindowId = new Object();
 chrome.windows.getAll({populate:true}, function(openWindows) {
 	for (var i in savedWindowNames) {
 		var name = savedWindowNames[i];
-		// TODO: handle non-existent window object more gracefully
+		// P1: handle non-existent window object more gracefully
 		var w  = restoreFromLocalStorage(name);
 		if (w) {
 			savedWindows[name] = w;
@@ -156,8 +160,7 @@ function openWindow(savedWindow) {
 			}
 		}
 	});
-	// TODO: add an else clause to select the window if it already exists
-	// TODO: close the window this was called from if it has a single empty tab
+	// P1: close the window this was called from if it has a single empty tab
 }
 
 // removed a saved window
@@ -222,7 +225,7 @@ function updateBadgeForWindow(windowId) {
 
 function onTabAttached(tabId, info) {
 	updateWindow(info.newWindowId);
-	// TODO: what do we do if this was the last tab of a saved window?
+	// P1: what do we do if this was the last tab of a saved window?
 }
 chrome.tabs.onAttached.addListener(onTabAttached);
 
@@ -255,7 +258,7 @@ function onTabRemoved(tabId) {
 	setTimeout(function(){
 		windowId = tabIdToWindowId[tabId];
 		updateWindow(windowId);
-		// TODO: can we handle the case when we close the last tab
+		// P1: can we handle the case when we close the last tab
 	}, 5000);
 }
 chrome.tabs.onRemoved.addListener(onTabRemoved);

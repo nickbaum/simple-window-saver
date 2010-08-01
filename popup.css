@@ -1,5 +1,4 @@
 /* TODO: add animations */
-/* TODO: change styling to match browser chrome */
 
 body {
 	font-family: "Helvetica", "sans-serif";
@@ -46,7 +45,8 @@ li > span:hover {
 }
 
 li.open > span {
-	color: #aaa;
+	color: #000;
+	cursor: default;
 }
 
 li.current > span:hover {

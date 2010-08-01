@@ -5,8 +5,8 @@
 
 <script type="text/javascript">
 
-// TODO: support drag & drop re-ordering
-// TODO: support drag & drop merging
+// FEATURE: support drag & drop re-ordering
+// FEATURE: support drag & drop merging
 
 var backgroundPage = chrome.extension.getBackgroundPage();
 var savedWindowListEl, formEl, nameInput;
@@ -45,13 +45,13 @@ function init() {
 
 // add window to HTML list of windows
 function appendWindowToList(w, currentWindowName) {
-	// TODO: move styling from javascript to html
+	// P1: move styling from javascript to html
 	var li = document.createElement("li");
 	
 	var span = document.createElement("span");
 	span.innerText = w.getDisplayName();
 	if (w.name == currentWindowName) {
-		innerspan = span.id = "windowName";
+		span.id = "windowName";
 		outerSpan = document.createElement("span");
 		outerSpan.appendChild(document.createTextNode("This is "));
 		outerSpan.appendChild(span);
@@ -60,7 +60,8 @@ function appendWindowToList(w, currentWindowName) {
 	} else {	
 		if (w.id) {
 			li.className = "open";
-			// TODO: make it possible to focus the window
+			span.onclick = null;
+			// FEATURE: make it possible to focus the window
 		} else {
 			span.onclick = function() {
 				backgroundPage.openWindow(w);
@@ -74,11 +75,10 @@ function appendWindowToList(w, currentWindowName) {
 		deleteSavedWindow(this, w.name);
 	};
 	del.className = "deleteButton";
-	// TODO: add icon
 	del.innerHTML = "&times;";
 	li.appendChild(del);
 	
-	// TODO: add "add to this set" to add current tabs to existing one
+	// FEATURE: add "add to this set" to add current tabs to existing one
 	
 	savedWindowListEl.appendChild(li);
 }
@@ -103,22 +103,13 @@ function deleteSavedWindow(element, name) {
 	var li = element.parentNode;
 	
 	w = backgroundPage.savedWindows[name];
-	// show form if this was the current window
-	if (li.className == "current") {
-		li.parentNode.removeChild(li);
- 		nameInput.value = w.displayName;
-		formEl.style.display = "block";
-		nameInput.focus();
-		nameInput.select();
-	} else {
-		var span = document.createElement("span");
-		span.innerText = w.displayName + " was deleted.";
-		oldNode = li.replaceChild(span, li.firstChild);
-		element.innerText = "undo";
-		element.className = "undoLink";
-		element.onclick = function() {
-			undoDeleteWindow(this, w, name, oldNode);
-		}
+	var span = document.createElement("span");
+	span.innerHTML = "<b>" + w.displayName + "</b> was deleted.";
+	oldNode = li.replaceChild(span, li.firstChild);
+	element.innerText = "undo";
+	element.className = "undoLink";
+	element.onclick = function() {
+		undoDeleteWindow(this, w, name, oldNode);
 	}
 
 	// actually perform the deletion
