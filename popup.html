@@ -1,7 +1,7 @@
 <html>
 <head>
 
-<link rel="stylesheet" type="text/css" href="popup.css" />
+<link id="style" rel="stylesheet" type="text/css" href="popup.css" />
 
 <script type="text/javascript">
 
@@ -9,6 +9,10 @@ var backgroundPage = chrome.extension.getBackgroundPage();
 var savedWindowListEl, formEl, nameInput;
 
 function init() {
+	// CSS buster - only used when developing locally
+	style = document.getElementById("style");
+	style.href = style.href + "?salt=" + Math.random();
+
 	savedWindowListEl = document.getElementById("savedWindowList");
 	nameInput = document.getElementById("nameInput");	
 	formEl = document.getElementById("form");
@@ -20,27 +24,25 @@ function init() {
 		var savedWindowNames = backgroundPage.savedWindowNames;
 		for (var i in savedWindowNames) {
 			var name = savedWindowNames[i];
-			if (name != currentWindowName){
-				var w = savedWindows[name];
-				appendWindowToList(w, currentWindowName);
-			}
-		}
-		if (currentWindowName) {
-			var w = savedWindows[currentWindowName];
+			var w = savedWindows[name];
 			appendWindowToList(w, currentWindowName);
-		} else if (currentWindow.incognito) {
-			document.getElementById("incognitoMsg").style.display = "block";
-		} else {
-			nameInput.value = backgroundPage.DEFAULT_NAME;
-			formEl.style.display = "block";
-			nameInput.focus();
-			nameInput.select();
+		}
+		if (!currentWindowName) {
+			if (currentWindow.incognito) {
+				document.getElementById("incognitoMsg").style.display = "block";
+			} else {
+				nameInput.value = backgroundPage.DEFAULT_NAME;
+				formEl.style.display = "block";
+				nameInput.focus();
+				nameInput.select();
+			}
 		}
 	});
 }
 
 // add window to HTML list of windows
 function appendWindowToList(w, currentWindowName) {
+	// TODO: move styling from javascript to html
 	var li = document.createElement("li");
 	
 	var span = document.createElement("span");
@@ -73,6 +75,8 @@ function appendWindowToList(w, currentWindowName) {
 	del.innerHTML = "&times;";
 	li.appendChild(del);
 	
+	// TODO: add "add to this set" to add current tabs to existing one
+	
 	savedWindowListEl.appendChild(li);
 }
 
@@ -90,25 +94,49 @@ function saveWindow() {
 }
 
 // delete a saved window
+// called when the user presses the delete button
 function deleteSavedWindow(element, name) {
 	// remove from list
 	var li = element.parentNode;
-	li.parentNode.removeChild(li);
 	
+	w = backgroundPage.savedWindows[name];
 	// show form if this was the current window
 	if (li.className == "current") {
-		var displayName = backgroundPage.savedWindows[name].displayName;
- 		nameInput.value = displayName;
+		li.parentNode.removeChild(li);
+ 		nameInput.value = w.displayName;
 		formEl.style.display = "block";
 		nameInput.focus();
 		nameInput.select();
+	} else {
+		var span = document.createElement("span");
+		span.innerText = w.displayName + " was deleted.";
+		oldNode = li.replaceChild(span, li.firstChild);
+		element.innerText = "undo";
+		element.className = "undoLink";
+		element.onclick = function() {
+			undoDeleteWindow(this, w, name, oldNode);
+		}
 	}
 
 	// actually perform the deletion
 	backgroundPage.deleteSavedWindow(name);
-	
-	// TODO: add undo
 }
+
+// undo a deletion
+// called when the user presse the undo button
+function undoDeleteWindow(element, w, name, oldNode) {
+	backgroundPage.saveWindow(w, name);
+	
+	li = element.parentNode;
+	li.replaceChild(oldNode, li.firstChild);
+	
+	element.innerHTML = "&times;";
+	element.className = "deleteButton";
+	element.onclick = function() {
+		deleteSavedWindow(this, w.name);
+	};
+}
+
 
 </script>
 

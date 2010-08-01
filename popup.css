@@ -1,4 +1,5 @@
 /* TODO: add animations */
+/* TODO: change styling to match browser chrome */
 
 body {
 	font-family: "Helvetica", "sans-serif";
@@ -56,10 +57,6 @@ li.current {
 	background-color: #ff9;
 }
 
-li.current > span:hover {
-	cursor: default;
-}
-
 li.current > span {
 	color: #000;
 }
@@ -84,9 +81,22 @@ li:hover > span.deleteButton {
 	color: #white;
 }
 
-li:hover > span.deleteButton:hover {
+span.deleteButton:hover {
 	cursor: pointer;
 	background-color: #f66;
+}
+
+span.undoLink {
+	float: right;
+	margin-left: 20px;
+}
+
+li > span.undoLink {
+	color: blue;
+}
+
+span.undoLink:hover  {
+	cursor: pointer;
 }
 
 input {
