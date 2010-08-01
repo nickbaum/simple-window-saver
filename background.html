@@ -21,14 +21,11 @@ var savedWindowNames = restoreFromLocalStorage("savedWindowNames", new Array());
 var savedWindows = new Object();
 
 // maps open windowIds to saved windows.
-// TODO: can we key everything by id rather than name?
 var windowIdToName = new Object();
 
 // Unfortunately, removing a tab doesn't give us a windowId
 // so we need to keep track of that mapping.
 var tabIdToWindowId = new Object();
-
-// TODO: add badge
 
 // populate savedWindows from local storage
 // as we go, try matching them to open windows.
@@ -51,6 +48,9 @@ chrome.windows.getAll({populate:true}, function(openWindows) {
 				}
 			}
 		}
+	}
+	for (var j in openWindows) {
+		updateBadgeForWindow(openWindows[j].id);
 	}
 });
 
@@ -103,6 +103,8 @@ function saveWindow(w, displayName) {
 	localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
 	windowIdToName[w.id] = name;
 	
+	updateBadgeForWindow(w.id);
+	
 	return storeWindow(w, name, displayName);
 }
 
@@ -144,33 +146,32 @@ function storeWindow(w, name, displayName) {
 
 // restore a previously saved window
 function openWindow(savedWindow) {
-	// TODO: add window parameters
 	chrome.windows.create({url:savedWindow.tabs[0].url}, function(w){
 		windowIdToName[w.id] = savedWindow.name;
 		savedWindow.id = w.id;
 		for (var i in savedWindow.tabs) {
 			if (i > 0) {
-				// TODO: add tab parameters
 				// TODO: there could be a race here, if the window gets saved
 				chrome.tabs.create({url:savedWindow.tabs[i].url});
 			}
 		}
 	});
 	// TODO: add an else clause to select the window if it already exists
+	// TODO: close the window this was called from if it has a single empty tab
 }
 
 // removed a saved window
 // returns the displayName of the removed window
 function deleteSavedWindow(name) {
-	delete localStorage[name];
+	w = savedWindows[name];
 	
+	delete localStorage[name];
+	delete savedWindows[name];
+	delete windowIdToName[w.id];
 	savedWindowNames.splice(savedWindowNames.indexOf(name), 1);
 	localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
 	
-	w = savedWindows[name];
-	delete windowIdToName[w.id];
-	
-	delete savedWindows[name];
+	updateBadgeForWindow(w.id);
 	
 	return w.displayName;
 }
@@ -181,16 +182,38 @@ function getDisplayName() {
 	return this.displayName + " (" + this.tabs.length + ")";
 }
 
-// wipe all the state
-function CLEAR_ALL() {
-	for (var i in savedWindowNames) {
-		delete localStorage[savedWindowNames[i]];
+/* BADGE FUNCTIONS */
+// Because chrome doesn't support per-window badges, we maintain it per-tab
+// and update it on both window and tab selection changes
+
+// updates the browserAction badge to show the window as saved
+function showSavedBadge(tabId) {
+	chrome.browserAction.setBadgeText({text:"v", tabId:tabId});
+	chrome.browserAction.setBadgeBackgroundColor(
+		{color:[0,255,0,255], tabId:tabId});
+}
+
+// updates the browserAction badge to show the window as unsaved
+// because chrome doesn't support per-window badges, we do it per-tab
+// and update it on both window and tab selection changes
+function showUnsavedBadge(tabId) {
+	chrome.browserAction.setBadgeText({text:"", tabId:tabId});
+}
+
+// update the badge for the given tab
+function updateBadgeForTab(tab) {
+	if(windowIdToName[tab.windowId]) {
+		showSavedBadge(tab.id);
+	} else {
+		showUnsavedBadge(tab.id);
 	}
-	delete localStorage["savedWindowNames"];
-	savedWindowNames = restoreFromLocalStorage("savedWindowNames", new Array());
-	savedWindows = new Object();
-	windowIdToName = new Object();
-	tabIdToWindowId = new Object();
+}
+
+// update the badge for the given window
+function updateBadgeForWindow(windowId) {
+	if(windowId != -1) {
+		chrome.tabs.getSelected(windowId, updateBadgeForTab);
+	}
 }
 
 /* TAB EVENTS */
@@ -239,6 +262,7 @@ chrome.tabs.onRemoved.addListener(onTabRemoved);
 
 function onTabSelectionChanged(tabId, info) {
 	updateWindow(info.windowId);
+	updateBadgeForTab({id: tabId, windowId: info.windowId});
 }
 chrome.tabs.onSelectionChanged.addListener(onTabSelectionChanged);
 
@@ -249,6 +273,7 @@ function onTabUpdated(tabId, info, tab) {
 		w.tabs[tab.index] = tab;
 		localStorage[w.name] = JSON.stringify(w);
 	}
+	updateBadgeForTab(tab);
 }
 chrome.tabs.onUpdated.addListener(onTabUpdated);
 
@@ -276,11 +301,14 @@ function onWindowRemoved(windowId) {
 }
 chrome.windows.onRemoved.addListener(onWindowRemoved);
 
+chrome.windows.onFocusChanged.addListener(updateBadgeForWindow);
+
 /* TODO: send feedback
 
 	KATHY
 	delete window triggers delete tabs
 	create tabs comes back to you
+	document that badges are per tab AND PER URL
 	
 	EXTENSIONS TEAM
 	onTabRemoved should include the oldWindowId
@@ -288,6 +316,9 @@ chrome.windows.onRemoved.addListener(onWindowRemoved);
 	chrome.windows.create should support a tab array
 	right click in popup should allow to inspect
 	css should not be cached while in developer mode
+	support debug mode (example: CSS buster)
+	support for changing the focused window
+	support unicode or html characters in browserAction badges
 */
 
 </script>

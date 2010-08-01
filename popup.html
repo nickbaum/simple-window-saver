@@ -5,6 +5,9 @@
 
 <script type="text/javascript">
 
+// TODO: support drag & drop re-ordering
+// TODO: support drag & drop merging
+
 var backgroundPage = chrome.extension.getBackgroundPage();
 var savedWindowListEl, formEl, nameInput;
 
@@ -151,7 +154,7 @@ function undoDeleteWindow(element, w, name, oldNode) {
 	<form id="form" onsubmit="return saveWindow();">
 		Save as: <input type="text" id="nameInput" />
 	</form>
-	<div id="incognitoMsg">Sorry, you can't save incognito windows.</div>
+	<div id="incognitoMsg">Note: you can't save incognito windows.</div>
 </div>
 
 </body>
