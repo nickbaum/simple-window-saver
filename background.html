@@ -12,7 +12,6 @@ P1: massive refactor to store data in bookmarks
 	Pros: adding/merging/reorganizing, sync
 	Cons: complexity, hard to store extra info, folders
 P1: add a proper icon
-P1: figure out what happens if there are two saved windows with the same content
 TODO: create release script (remove debug, compile javascript/CSS, etc)
 TODO: split background.HTML into multiple JS files (closure?)
 
@@ -38,7 +37,6 @@ var tabIdToWindowId = new Object();
 chrome.windows.getAll({populate:true}, function(openWindows) {
 	for (var i in savedWindowNames) {
 		var name = savedWindowNames[i];
-		// P1: handle non-existent window object more gracefully
 		var w  = restoreFromLocalStorage(name);
 		if (w) {
 			savedWindows[name] = w;
@@ -46,16 +44,19 @@ chrome.windows.getAll({populate:true}, function(openWindows) {
 			delete w.id; 
 			// now, let's check if it's one of the open windows
 			for (var j in openWindows) {
-				if (windowsAreEqual(openWindows[j], w)) {
-					w.id = openWindows[j].id;				
+				openWindow = openWindows[j];
+				if (windowsAreEqual(openWindow, w)) {
+					w.id = openWindow.id;				
 					windowIdToName[w.id] = w.name;
 					break;
 				}
+				updateBadgeForWindow(openWindow.id);
 			}
+		} else {
+			console.error("Window " + name + " was not found in localStorage.");
+			savedWindowNames.splice(savedWindowNames.indexOf(name), 1);
+			localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
 		}
-	}
-	for (var j in openWindows) {
-		updateBadgeForWindow(openWindows[j].id);
 	}
 });
 
