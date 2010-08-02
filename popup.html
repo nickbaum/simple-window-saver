@@ -9,7 +9,8 @@
 // FEATURE: support drag & drop merging
 
 var backgroundPage = chrome.extension.getBackgroundPage();
-var savedWindowListEl, formEl, nameInput;
+var savedWindowListEl, formEl, nameInput, template;
+var undo = new Object();
 
 function init() {
 	// CSS buster - only used when developing locally
@@ -17,8 +18,10 @@ function init() {
 	style.href = style.href + "?salt=" + Math.random();
 
 	savedWindowListEl = document.getElementById("savedWindowList");
-	nameInput = document.getElementById("nameInput");	
 	formEl = document.getElementById("form");
+	nameInput = document.getElementById("nameInput");
+	
+	template = document.getElementById("template");
 	
 	// populate list of windows
 	chrome.windows.getCurrent(function(currentWindow) {
@@ -45,38 +48,21 @@ function init() {
 
 // add window to HTML list of windows
 function appendWindowToList(w, currentWindowName) {
-	// P1: move styling from javascript to html
-	var li = document.createElement("li");
+	li = template.cloneNode(true);
+	li.removeAttribute("id");
+	li.setAttribute("data-name", w.name);
 	
-	var span = document.createElement("span");
-	span.innerText = w.getDisplayName();
+	var text = w.displayName + " (" + w.tabs.length + ")";
 	if (w.name == currentWindowName) {
-		span.id = "windowName";
-		outerSpan = document.createElement("span");
-		outerSpan.appendChild(document.createTextNode("This is "));
-		outerSpan.appendChild(span);
 		li.className = "current";
-		span = outerSpan;
-	} else {	
-		if (w.id) {
-			li.className = "open";
-			span.onclick = null;
-			// FEATURE: make it possible to focus the window
-		} else {
-			span.onclick = function() {
-				backgroundPage.openWindow(w);
-			};
-		}
+		li.onclick = null;
+		text = "This is <b>" + text + "<\/b>.";
+	} else if (w.id) {
+		li.className = "open";
+		li.onclick = null;
+		// FEATURE: make it possible to focus the window
 	}
-	li.appendChild(span);
-	
-	var del = document.createElement("span");
-	del.onclick = function() {
-		deleteSavedWindow(this, w.name);
-	};
-	del.className = "deleteButton";
-	del.innerHTML = "&times;";
-	li.appendChild(del);
+	setText(li, text);
 	
 	// FEATURE: add "add to this set" to add current tabs to existing one
 	
@@ -96,41 +82,65 @@ function saveWindow() {
 	return false;
 }
 
+// open a saved window
+// called when the user clicks a window name
+function openSavedWindow(element) {
+	name = element.getAttribute("data-name");
+	backgroundPage.openWindow(name);
+}
+
 // delete a saved window
 // called when the user presses the delete button
-function deleteSavedWindow(element, name) {
-	// remove from list
+function deleteSavedWindow(element) {
+	// get data
 	var li = element.parentNode;
+	var name = li.getAttribute("data-name");
+	var w = backgroundPage.savedWindows[name]
+	var text = li.childNodes[1].innerHTML;
 	
-	w = backgroundPage.savedWindows[name];
-	var span = document.createElement("span");
-	span.innerHTML = "<b>" + w.displayName + "</b> was deleted.";
-	oldNode = li.replaceChild(span, li.firstChild);
-	element.innerText = "undo";
-	element.className = "undoLink";
-	element.onclick = function() {
-		undoDeleteWindow(this, w, name, oldNode);
-	}
+	// save information for undo
+	undo[name] = {
+		className: li.className,
+		text: text,
+		w: w
+	};
 
 	// actually perform the deletion
 	backgroundPage.deleteSavedWindow(name);
+	
+	// update display
+	li.className = "deleted";
+	setText(li, "<b>" + getDisplayName(w) + "<\/b> was deleted.");
 }
 
 // undo a deletion
 // called when the user presse the undo button
-function undoDeleteWindow(element, w, name, oldNode) {
-	backgroundPage.saveWindow(w, name);
+function undoDeleteSavedWindow(element) {
+	// get data
+	var li = element.parentNode;
+	var name = li.getAttribute("data-name");
+	var undoInfo = undo[name];
+
+	// resave the window
+	backgroundPage.saveWindow(undoInfo.w, name);
 	
-	li = element.parentNode;
-	li.replaceChild(oldNode, li.firstChild);
+	// update display
+	li.className = undoInfo.className;
+	setText(li, undoInfo.text);
 	
-	element.innerHTML = "&times;";
-	element.className = "deleteButton";
-	element.onclick = function() {
-		deleteSavedWindow(this, w.name);
-	};
+	// clean up
+	delete undo[name];
 }
 
+// given a list element, sets the text
+function setText(element, text) {
+	element.childNodes[1].innerHTML = text;
+}
+
+// formats the name for display
+function getDisplayName(w) {
+	return w.displayName + " (" + w.tabs.length + ")";
+}
 
 </script>
 
@@ -141,6 +151,15 @@ function undoDeleteWindow(element, w, name, oldNode) {
 
 <div>
 	<ul id="savedWindowList">
+	 	<li id="template" onclick="openSavedWindow(this);">
+		 	<span class="text">Name</span><!--
+		 --><span class="delete" onclick="deleteSavedWindow(this);">
+				&times;
+			</span><!--
+		 --><span class="undo" onclick="undoDeleteSavedWindow(this);">
+				undo
+			</span>
+		</li>
 	</ul>
 	<form id="form" onsubmit="return saveWindow();">
 		Save as: <input type="text" id="nameInput" />

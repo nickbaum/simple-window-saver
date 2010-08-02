@@ -1,5 +1,6 @@
 /* TODO: add animations */
 /* TODO: refactor to use less.js */
+/* TODO: re-order */
 
 body {
 	font-family: "Helvetica", "sans-serif";
@@ -12,60 +13,66 @@ body {
 	white-space: nowrap;
 }
 
-li {
-	list-style: none;
-}
-
-#windowName {
-	font-weight: bold;
-}
-
-#form, li {
+li, #form, #incognitoMsg {
 	padding: 5px 10px;
 }
 
-#windowName {
-	font-weight: bold;
+#template {
+	display: none;
 }
 
 li {
+	list-style: none;
 	border-radius: 10px;
 	margin: 10px 5px;
+	color: blue;
 }
 
 li:hover {
 	background-color: #eee;
 }
 
-li > span {
-	color: #00f;
+li:hover > .delete {
+	visibility: visible;
 }
 
-li > span:hover {
+.text {
+	display: inline;
+}
+
+.text:hover {
 	cursor: pointer;
 }
 
-li.open > span {
-	color: #000;
+/* OPEN */
+
+.open {
+	color: black;
+}
+
+.open > .text:hover {
 	cursor: default;
 }
 
-li.current > span:hover {
-	cursor: default;
-}
+/* CURRENT */
 
-li.current {
+.current, .current:hover {
 	background-color: #ff9;
+	color: black;
 }
 
-li.current > span {
-	color: #000;
+.current > .text:hover {
+	cursor: default;
 }
 
-span.deleteButton {
+/* DELETE */
+
+.delete {
 	margin-left: 20px;
 	float: right;
+	display: inline;
 	visibility: hidden;
+	color: white;
 	background-color: #fcc;
 	text-align: center;
 	border-radius: 10px;
@@ -77,27 +84,44 @@ span.deleteButton {
 	top: 1px;
 }
 
-li:hover > span.deleteButton {
-	visibility: visible;
-	color: #white;
-}
-
-span.deleteButton:hover {
+.delete:hover {
 	cursor: pointer;
 	background-color: #f66;
 }
 
-span.undoLink {
+/* DELETED */
+
+.deleted, .deleted:hover {
+	color: black;
+	background-color: #fcc;
+}
+
+.deleted > .delete {
+	display: none;
+}
+
+.deleted > .undo {
+	display: inline;
+}
+
+/* UNDO */
+
+.undo {
+	display: none;
+	color: blue;
 	float: right;
 	margin-left: 20px;
 }
 
-li > span.undoLink {
-	color: blue;
+.undo:hover  {
+	cursor: pointer;
 }
 
-span.undoLink:hover  {
-	cursor: pointer;
+/* FORM */
+
+#form {
+	display: none;
+	margin: 5px;
 }
 
 input {
@@ -112,14 +136,9 @@ input:focus {
 	outline: none;
 }
 
-#form {
-	display: none;
-	margin: 5px;
-}
-
 #incognitoMsg {
-	border-radius: 20px;
-	padding: 5px 20px;
-	background-color: #faa;
 	display: none;
+	background-color: #fcc;
+	border-radius: 10px;
+	margin: 10px 5px;
 }

@@ -42,7 +42,6 @@ chrome.windows.getAll({populate:true}, function(openWindows) {
 		var w  = restoreFromLocalStorage(name);
 		if (w) {
 			savedWindows[name] = w;
-			w.getDisplayName = getDisplayName;
 			// by default, we assume the window is closed (id is undefined)
 			delete w.id; 
 			// now, let's check if it's one of the open windows
@@ -137,7 +136,6 @@ function updateWindow(windowId) {
 function storeWindow(w, name, displayName) {
 	w.name = name;
 	w.displayName = displayName;
-	w.getDisplayName = getDisplayName;
 	
 	savedWindows[name] = w;
 	localStorage[name] = JSON.stringify(w);
@@ -151,13 +149,17 @@ function storeWindow(w, name, displayName) {
 }
 
 // restore a previously saved window
-function openWindow(savedWindow) {
+function openWindow(name) {
+	var savedWindow = savedWindows[name];
+
+	// if opened from a newtab, close the tab
 	chrome.tabs.getSelected(null, function(tab){
-		console.log(tab);
 		if(tab.url == "chrome://newtab/") {
 			chrome.tabs.remove(tab.id);
 		}
 	});
+	
+	// create window and tabs
 	chrome.windows.create({url:savedWindow.tabs[0].url}, function(w){
 		windowIdToName[w.id] = savedWindow.name;
 		savedWindow.id = w.id;
@@ -184,12 +186,6 @@ function deleteSavedWindow(name) {
 	updateBadgeForWindow(w.id);
 	
 	return w.displayName;
-}
-
-// adds the number of tabs in parentheses after a window's displayName
-// TODO: make this aware of pending deletions and creations
-function getDisplayName() {
-	return this.displayName + " (" + this.tabs.length + ")";
 }
 
 /* BADGE FUNCTIONS */
@@ -264,6 +260,7 @@ function onTabRemoved(tabId) {
 	// TODO: improve this algorithm
 	setTimeout(function(){
 		windowId = tabIdToWindowId[tabId];
+		delete tabIdToWindowId[tabId];
 		updateWindow(windowId);
 		// P1: can we handle the case when we close the last tab
 	}, 5000);
@@ -271,8 +268,13 @@ function onTabRemoved(tabId) {
 chrome.tabs.onRemoved.addListener(onTabRemoved);
 
 function onTabSelectionChanged(tabId, info) {
-	updateWindow(info.windowId);
 	updateBadgeForTab({id: tabId, windowId: info.windowId});
+	// because closing the window triggers tab selection changed events
+	// we set a timeout so the window removal event has the time to trigger
+	// and we don't accidentally delete a saved window
+	setTimeout(function(){
+		updateWindow(info.windowId);
+	}, 5000);
 }
 chrome.tabs.onSelectionChanged.addListener(onTabSelectionChanged);
 
@@ -329,6 +331,7 @@ chrome.windows.onFocusChanged.addListener(updateBadgeForWindow);
 	support debug mode (example: CSS buster)
 	support for changing the focused window
 	support unicode or html characters in browserAction badges
+	always have to hit inspect popup twice
 */
 
 </script>
