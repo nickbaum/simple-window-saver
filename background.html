@@ -238,20 +238,20 @@ function updateBadgeForWindow(windowId) {
 // While more wasteful, this makes the code much more robust.
 
 function onTabAttached(tabId, info) {
-	windowWasChanged(info.newWindowId);
+	onWindowChanged(info.newWindowId);
 	updateBadgeForTab(tabId);
 	// P1: what do we do if this was the last tab of a saved window?
 }
 chrome.tabs.onAttached.addListener(onTabAttached);
 
 function onTabCreated(tab) {
-	windowWasChanged(tab.windowId);
+	onWindowChanged(tab.windowId);
 	updateBadgeForTab(tab.id);
 }
 chrome.tabs.onCreated.addListener(onTabCreated);
 
 function onTabDetached(tabId, info) {
-	windowWasChanged(info.oldWindowId);
+	onWindowChanged(info.oldWindowId);
 	if (tabIdToWindowId[tabId]) {
 		delete tabIdToWindowId[tabId];
 	}
@@ -260,7 +260,7 @@ function onTabDetached(tabId, info) {
 chrome.tabs.onDetached.addListener(onTabDetached);
 
 function onTabMoved(tabId, info) {
-	windowWasChanged(info.windowId);
+	onWindowChanged(info.windowId);
 	updateBadgeForTab(tabId);
 }
 chrome.tabs.onMoved.addListener(onTabMoved);
@@ -273,7 +273,7 @@ function onTabRemoved(tabId) {
 	setTimeout(function(){
 		windowId = tabIdToWindowId[tabId];
 		delete tabIdToWindowId[tabId];
-		windowWasChanged(windowId);
+		onWindowChanged(windowId);
 		// P1: can we handle the case when we close the last tab
 	}, 5000);
 }
@@ -285,19 +285,19 @@ function onTabSelectionChanged(tabId, info) {
 	// we set a timeout so the window removal event has the time to trigger
 	// and we don't accidentally delete a saved window
 	setTimeout(function(){
-		windowWasChanged(info.windowId);
+		onWindowChanged(info.windowId);
 	}, 5000);
 }
 chrome.tabs.onSelectionChanged.addListener(onTabSelectionChanged);
 
 function onTabUpdated(tabId, info, tab) {
-	windowWasChanged(tab.windowId);
+	onWindowChanged(tab.windowId);
 	updateBadgeForTab(tabId);
 }
 chrome.tabs.onUpdated.addListener(onTabUpdated);
 
 // updates a window in response to a tab event
-function windowWasChanged(windowId) {
+function onWindowChanged(windowId) {
 	getPopulatedWindow(windowId, function(w) {
 		// if the window is saved, we update it
 		if (windowIdToName[windowId]) {
