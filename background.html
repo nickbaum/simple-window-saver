@@ -8,9 +8,6 @@ The background page is responsible for the following:
 * listening for window/tab events to keep our state up to date.
 * saving, opening and deleting windows actions from the popups.
 
-P1: massive refactor to store data in bookmarks
-	Pros: adding/merging/reorganizing, sync
-	Cons: complexity, hard to store extra info, folders
 P1: add a proper icon
 TODO: create release script (remove debug, compile javascript/CSS, etc)
 TODO: split background.HTML into multiple JS files (closure?)
@@ -19,38 +16,50 @@ TODO: split background.HTML into multiple JS files (closure?)
 
 var DEFAULT_NAME = "Window";
 
-// an array of the names of all saved windows.
+// an array of the names of all saved windows
 var savedWindowNames = restoreFromLocalStorage("savedWindowNames", new Array());
 
-// saved windows, keyed by name.
+// saved windows, keyed by name
+// If the savedWindow has an id, it is currently open.
+// Each savedWindow can only correspond to one open window at any given time.
 var savedWindows = new Object();
 
-// maps open windowIds to saved windows.
+// map the ids of open windows to saved window names
+// used to respond to events
 var windowIdToName = new Object();
+
+/* EDGE CASES */
+// saved windows that aren't currently open, keyed by name
+// used to match new windows to saved windows that are still closed
+var closedWindows = new Object();
 
 // Unfortunately, removing a tab doesn't give us a windowId
 // so we need to keep track of that mapping.
 var tabIdToWindowId = new Object();
 
+/* INIT */
+
 // populate savedWindows from local storage
-// as we go, try matching them to open windows.
+// as we go, try matching them to open windows
 chrome.windows.getAll({populate:true}, function(openWindows) {
 	for (var i in savedWindowNames) {
 		var name = savedWindowNames[i];
-		var w  = restoreFromLocalStorage(name);
-		if (w) {
-			savedWindows[name] = w;
+		var savedWindow  = restoreFromLocalStorage(name);
+		if (savedWindow) {
+			savedWindows[name] = savedWindow;
 			// by default, we assume the window is closed (id is undefined)
-			delete w.id; 
+			delete savedWindow.id;
 			// now, let's check if it's one of the open windows
 			for (var j in openWindows) {
-				openWindow = openWindows[j];
-				if (windowsAreEqual(openWindow, w)) {
-					w.id = openWindow.id;				
-					windowIdToName[w.id] = w.name;
+				w = openWindows[j];
+				if (windowsAreEqual(w, savedWindow)) {
+					storeWindow(w, name, savedWindow.displayName);
+					markWindowAsOpen(w);
 					break;
 				}
-				updateBadgeForWindow(openWindow.id);
+			}
+			if(!savedWindows[name].id) {
+				closedWindows[name] = savedWindows[name];
 			}
 		} else {
 			console.error("Window " + name + " was not found in localStorage.");
@@ -75,7 +84,7 @@ function restoreFromLocalStorage(key, defaultValue) {
 // match those of the saved window, we consider them equal
 // even if the new window has more tabs
 function windowsAreEqual(currentWindow, savedWindow) {
-	if (currentWindow.incognito != savedWindow.incognito) {
+	if (currentWindow.incognito) {
 		return false;
 	}
 	if (!currentWindow.tabs || !savedWindow.tabs) {
@@ -107,29 +116,9 @@ function saveWindow(w, displayName) {
 	// add window to indexes
 	savedWindowNames.push(name);
 	localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
-	windowIdToName[w.id] = name;
 	
-	updateBadgeForWindow(w.id);
-	
-	return storeWindow(w, name, displayName);
-}
-
-// update a saved window
-// returns true if the window existed, false otherwise
-function updateWindow(windowId) {
-	if (windowIdToName[windowId]) {
-		chrome.windows.get(windowId, function(w) {
-			chrome.tabs.getAllInWindow(windowId, function(tabs) {
-				w.tabs = tabs;
-				var name = windowIdToName[windowId];
-				var displayName = savedWindows[name].displayName;
-				storeWindow(w, name, displayName);
-			});
-		});
-		return true;
-	} else {
-		return false;
-	}
+	storeWindow(w, name, displayName);
+	return w;
 }
 
 // store a window object
@@ -141,12 +130,27 @@ function storeWindow(w, name, displayName) {
 	savedWindows[name] = w;
 	localStorage[name] = JSON.stringify(w);
 	
-	// update tabIdToWindowId
+	return w;
+}
+
+function markWindowAsOpen(w) {
+	if (!w.id) {
+		console.error("Tried marking a window as open that has no id.");
+		console.error(w);
+	}
+	delete closedWindows[w.name];
+	windowIdToName[w.id] = w.name;
 	for (var i in w.tabs) {
 		tabIdToWindowId[w.tabs[i].id] = w.id;
 	}
-	
-	return w;
+	updateBadgeForWindow(w.id);
+}
+
+function markWindowAsClosed(w) {
+	delete w.id;
+	delete windowIdToName[w.id];
+	closedWindows[w.name] = w;
+	updateBadgeForWindow(w.id);
 }
 
 // restore a previously saved window
@@ -162,8 +166,8 @@ function openWindow(name) {
 	
 	// create window and tabs
 	chrome.windows.create({url:savedWindow.tabs[0].url}, function(w){
-		windowIdToName[w.id] = savedWindow.name;
 		savedWindow.id = w.id;
+		markWindowAsOpen(savedWindow);
 		for (var i in savedWindow.tabs) {
 			if (i > 0) {
 				// TODO: there could be a race here, if the window gets saved
@@ -174,19 +178,25 @@ function openWindow(name) {
 }
 
 // removed a saved window
-// returns the displayName of the removed window
 function deleteSavedWindow(name) {
 	w = savedWindows[name];
 	
+	if (w.id) {
+		markWindowAsClosed(w);
+		for (var i in w.tabs) {
+			delete tabIdToWindowId[w.tabs[i].id];
+		}
+	} else {
+		delete closedWindows[w.name];
+	}
+	
 	delete localStorage[name];
 	delete savedWindows[name];
-	delete windowIdToName[w.id];
+	
 	savedWindowNames.splice(savedWindowNames.indexOf(name), 1);
 	localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
 	
 	updateBadgeForWindow(w.id);
-	
-	return w.displayName;
 }
 
 /* BADGE FUNCTIONS */
@@ -225,32 +235,33 @@ function updateBadgeForWindow(windowId) {
 
 /* TAB EVENTS */
 // For most tab events, we simply resave the entire window.
-// While a bit more wasteful, this makes the code much more robust.
+// While more wasteful, this makes the code much more robust.
 
 function onTabAttached(tabId, info) {
-	updateWindow(info.newWindowId);
+	windowWasChanged(info.newWindowId);
+	updateBadgeForTab(tabId);
 	// P1: what do we do if this was the last tab of a saved window?
 }
 chrome.tabs.onAttached.addListener(onTabAttached);
 
 function onTabCreated(tab) {
-	windowWasUpdated = updateWindow(tab.windowId);
-	if (windowWasUpdated) {
-		tabIdToWindowId[tab.id] = tab.windowId;
-	}
+	windowWasChanged(tab.windowId);
+	updateBadgeForTab(tab.id);
 }
 chrome.tabs.onCreated.addListener(onTabCreated);
 
 function onTabDetached(tabId, info) {
-	windowWasSaved = updateWindow(info.oldWindowId);
-	if (windowWasSaved) {
+	windowWasChanged(info.oldWindowId);
+	if (tabIdToWindowId[tabId]) {
 		delete tabIdToWindowId[tabId];
 	}
+	updateBadgeForTab(tabId);
 }
 chrome.tabs.onDetached.addListener(onTabDetached);
 
 function onTabMoved(tabId, info) {
-	updateWindow(info.windowId);
+	windowWasChanged(info.windowId);
+	updateBadgeForTab(tabId);
 }
 chrome.tabs.onMoved.addListener(onTabMoved);
 
@@ -262,7 +273,7 @@ function onTabRemoved(tabId) {
 	setTimeout(function(){
 		windowId = tabIdToWindowId[tabId];
 		delete tabIdToWindowId[tabId];
-		updateWindow(windowId);
+		windowWasChanged(windowId);
 		// P1: can we handle the case when we close the last tab
 	}, 5000);
 }
@@ -274,47 +285,63 @@ function onTabSelectionChanged(tabId, info) {
 	// we set a timeout so the window removal event has the time to trigger
 	// and we don't accidentally delete a saved window
 	setTimeout(function(){
-		updateWindow(info.windowId);
+		windowWasChanged(info.windowId);
 	}, 5000);
 }
 chrome.tabs.onSelectionChanged.addListener(onTabSelectionChanged);
 
 function onTabUpdated(tabId, info, tab) {
-	windowName = windowIdToName[tab.windowId];
-	if (windowName) {
-		w = savedWindows[windowName];
-		w.tabs[tab.index] = tab;
-		localStorage[w.name] = JSON.stringify(w);
-	}
-	updateBadgeForTab(tab);
+	windowWasChanged(tab.windowId);
+	updateBadgeForTab(tabId);
 }
 chrome.tabs.onUpdated.addListener(onTabUpdated);
 
-/* WINDOW EVENTS */
-
-// TODO: do we need this?
-function onWindowCreated(w) {
-	for (var i in savedWindows) {
-		savedWindow = savedWindows[i];
-		if (windowsAreEqual(w, savedWindow)) {
-			savedWindow.id = w.id;
-			windowIdToName[w.id] = savedWindow.name;
+// updates a window in response to a tab event
+function windowWasChanged(windowId) {
+	getPopulatedWindow(windowId, function(w) {
+		// if the window is saved, we update it
+		if (windowIdToName[windowId]) {
+			var name = windowIdToName[windowId];
+			var displayName = savedWindows[name].displayName;
+			storeWindow(w, name, displayName);
+		} else {
+			// otherwise we double check that it's not saved
+			for (i in closedWindows) {
+				savedWindow = closedWindows[i];
+				if (windowsAreEqual(w, savedWindow)) {
+					console.log("Window " + windowId + " was identified as " + savedWindow.displayName);
+					var name = savedWindow.name;
+					var displayName = savedWindow.displayName;
+					storeWindow(w, name, displayName);
+					markWindowAsOpen(w);
+				}
+			}
 		}
-	}
+	});
 }
-chrome.windows.onCreated.addListener(onWindowCreated);
+
+function getPopulatedWindow(windowId, callback) {
+	if (!windowId) {return;}
+	chrome.windows.get(windowId, function(w) {
+		if (!w) {return;}
+		chrome.tabs.getAllInWindow(windowId, function(tabs) {
+			if (!tabs) {return;}
+			w.tabs = tabs;
+			callback(w);
+		});
+	});
+}
+
+/* WINDOW EVENTS */
 
 function onWindowRemoved(windowId) {
 	windowName = windowIdToName[windowId];
 	if (windowName) {
 		w = savedWindows[windowName];
-		delete w.id;
-		delete windowIdToName[windowId];
+		markWindowAsClosed(w);
 	}
 }
 chrome.windows.onRemoved.addListener(onWindowRemoved);
-
-chrome.windows.onFocusChanged.addListener(updateBadgeForWindow);
 
 /* TODO: send feedback
 

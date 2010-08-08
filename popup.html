@@ -75,6 +75,7 @@ function saveWindow() {
 		chrome.tabs.getAllInWindow(null, function(tabs) {	
 			w.tabs = tabs;
 			w = backgroundPage.saveWindow(w, nameInput.value);
+			backgroundPage.markWindowAsOpen(w);
 			formEl.style.display = "none";
 			appendWindowToList(w, nameInput.value);
 		});
