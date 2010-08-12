@@ -37,6 +37,11 @@ var closedWindows = new Object();
 // so we need to keep track of that mapping.
 var tabIdToWindowId = new Object();
 
+// maps tabIds to windowIds and windowIds to tabIds
+// for windows with only one tab
+// used to handle moving a single saved tab into an unsaved window
+var windowTabs = new Object();
+
 /* INIT */
 
 // populate savedWindows from local storage
@@ -147,10 +152,10 @@ function markWindowAsOpen(w) {
 }
 
 function markWindowAsClosed(w) {
-	delete w.id;
 	delete windowIdToName[w.id];
-	closedWindows[w.name] = w;
 	updateBadgeForWindow(w.id);
+	closedWindows[w.name] = w;
+	delete w.id;
 }
 
 // restore a previously saved window
@@ -186,17 +191,13 @@ function deleteSavedWindow(name) {
 		for (var i in w.tabs) {
 			delete tabIdToWindowId[w.tabs[i].id];
 		}
-	} else {
-		delete closedWindows[w.name];
 	}
 	
+	delete closedWindows[w.name];
 	delete localStorage[name];
 	delete savedWindows[name];
-	
 	savedWindowNames.splice(savedWindowNames.indexOf(name), 1);
 	localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
-	
-	updateBadgeForWindow(w.id);
 }
 
 /* BADGE FUNCTIONS */
@@ -238,30 +239,26 @@ function updateBadgeForWindow(windowId) {
 // While more wasteful, this makes the code much more robust.
 
 function onTabAttached(tabId, info) {
-	onWindowChanged(info.newWindowId);
-	updateBadgeForTab(tabId);
+	onTabChanged(tabId, info.newWindowId);
 	// P1: what do we do if this was the last tab of a saved window?
 }
 chrome.tabs.onAttached.addListener(onTabAttached);
 
 function onTabCreated(tab) {
-	onWindowChanged(tab.windowId);
-	updateBadgeForTab(tab.id);
+	onTabChanged(tab.id, tab.windowId);
 }
 chrome.tabs.onCreated.addListener(onTabCreated);
 
 function onTabDetached(tabId, info) {
-	onWindowChanged(info.oldWindowId);
 	if (tabIdToWindowId[tabId]) {
 		delete tabIdToWindowId[tabId];
 	}
-	updateBadgeForTab(tabId);
+	onTabChanged(tabId, info.oldWindowId);
 }
 chrome.tabs.onDetached.addListener(onTabDetached);
 
 function onTabMoved(tabId, info) {
-	onWindowChanged(info.windowId);
-	updateBadgeForTab(tabId);
+	onTabChanged(tabId, info.windowId);
 }
 chrome.tabs.onMoved.addListener(onTabMoved);
 
@@ -273,7 +270,7 @@ function onTabRemoved(tabId) {
 	setTimeout(function(){
 		windowId = tabIdToWindowId[tabId];
 		delete tabIdToWindowId[tabId];
-		onWindowChanged(windowId);
+		onTabChanged(null, windowId);
 		// P1: can we handle the case when we close the last tab
 	}, 5000);
 }
@@ -285,19 +282,18 @@ function onTabSelectionChanged(tabId, info) {
 	// we set a timeout so the window removal event has the time to trigger
 	// and we don't accidentally delete a saved window
 	setTimeout(function(){
-		onWindowChanged(info.windowId);
+		onTabChanged(null, info.windowId);
 	}, 5000);
 }
 chrome.tabs.onSelectionChanged.addListener(onTabSelectionChanged);
 
 function onTabUpdated(tabId, info, tab) {
-	onWindowChanged(tab.windowId);
-	updateBadgeForTab(tabId);
+	onTabChanged(tabId, tab.windowId);
 }
 chrome.tabs.onUpdated.addListener(onTabUpdated);
 
 // updates a window in response to a tab event
-function onWindowChanged(windowId) {
+function onTabChanged(tabId, windowId) {
 	getPopulatedWindow(windowId, function(w) {
 		// if the window is saved, we update it
 		if (windowIdToName[windowId]) {
@@ -316,6 +312,9 @@ function onWindowChanged(windowId) {
 					markWindowAsOpen(w);
 				}
 			}
+		}
+		if(tabId) {
+			updateBadgeForTab({id:tabId, windowId:windowId});
 		}
 	});
 }
