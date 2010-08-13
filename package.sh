@@ -13,6 +13,7 @@ files_to_clean_up=(
 	icon32.png
 	package.sh
 	screenshot.png
+	textmateproject.tmproj
 )
 
 # clean up previous state
@@ -30,7 +31,7 @@ cd SimpleWindowSaver;
 for i in ${files_to_clean_up[@]}; do
 	rm -rf $i;
 done
-cd ../;
+cd ..;
 
 # TODO: add js compilation and html/css minification
 
