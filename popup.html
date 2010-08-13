@@ -112,6 +112,7 @@ function deleteSavedWindow(element) {
 	// update display
 	li.className = "deleted";
 	setText(li, "<b>" + getDisplayName(w) + "<\/b> was deleted.");
+	// TODO: show the form if current window
 }
 
 // undo a deletion
@@ -131,6 +132,7 @@ function undoDeleteSavedWindow(element) {
 	
 	// clean up
 	delete undo[name];
+	// TODO: hide the form if current window
 }
 
 // given a list element, sets the text

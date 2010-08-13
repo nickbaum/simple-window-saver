@@ -8,7 +8,6 @@ The background page is responsible for the following:
 * listening for window/tab events to keep our state up to date.
 * saving, opening and deleting windows actions from the popups.
 
-P1: add a proper icon
 TODO: create release script (remove debug, compile javascript/CSS, etc)
 TODO: split background.HTML into multiple JS files (closure?)
 
@@ -43,6 +42,8 @@ var tabIdToWindowId = new Object();
 var windowTabs = new Object();
 
 /* INIT */
+
+localStorage.version = "1.0";
 
 // populate savedWindows from local storage
 // as we go, try matching them to open windows
@@ -139,10 +140,6 @@ function storeWindow(w, name, displayName) {
 }
 
 function markWindowAsOpen(w) {
-	if (!w.id) {
-		console.error("Tried marking a window as open that has no id.");
-		console.error(w);
-	}
 	delete closedWindows[w.name];
 	windowIdToName[w.id] = w.name;
 	for (var i in w.tabs) {
@@ -153,8 +150,8 @@ function markWindowAsOpen(w) {
 
 function markWindowAsClosed(w) {
 	delete windowIdToName[w.id];
-	updateBadgeForWindow(w.id);
 	closedWindows[w.name] = w;
+	updateBadgeForWindow(w.id);
 	delete w.id;
 }
 
@@ -240,7 +237,7 @@ function updateBadgeForWindow(windowId) {
 
 function onTabAttached(tabId, info) {
 	onTabChanged(tabId, info.newWindowId);
-	// P1: what do we do if this was the last tab of a saved window?
+	// TODO: what do we do if this was the last tab of a saved window?
 }
 chrome.tabs.onAttached.addListener(onTabAttached);
 
@@ -271,7 +268,7 @@ function onTabRemoved(tabId) {
 		windowId = tabIdToWindowId[tabId];
 		delete tabIdToWindowId[tabId];
 		onTabChanged(null, windowId);
-		// P1: can we handle the case when we close the last tab
+		// TODO: can we handle the case when we close the last tab
 	}, 5000);
 }
 chrome.tabs.onRemoved.addListener(onTabRemoved);

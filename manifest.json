@@ -1,9 +1,12 @@
 {
   "name": "Simple Window Saver",
-  "version": "0.5",
+  "version": "1.0",
   "description": "Save and restore windows.",
+  "icons": { "16": "icon16.png",
+           "48": "icon48.png",
+          "128": "icon128.png" },
   "browser_action": {
-    "default_icon": "icon.png",
+    "default_icon": "icon19.png",
     "default_title": "Simple Window Saver",
     "popup": "popup.html"
   },
