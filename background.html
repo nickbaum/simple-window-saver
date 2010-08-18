@@ -172,7 +172,7 @@ function openWindow(name) {
 		for (var i in savedWindow.tabs) {
 			if (i > 0) {
 				// TODO: there could be a race here, if the window gets saved
-				chrome.tabs.create({url:savedWindow.tabs[i].url});
+				chrome.tabs.create({url:savedWindow.tabs[i].url, windowId: w.id});
 			}
 		}
 	});
