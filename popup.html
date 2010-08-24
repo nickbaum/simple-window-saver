@@ -74,7 +74,6 @@ function saveWindow() {
 		chrome.tabs.getAllInWindow(null, function(tabs) {	
 			w.tabs = tabs;
 			w = backgroundPage.saveWindow(w, nameInput.value);
-			backgroundPage.markWindowAsOpen(w);
 			formEl.style.display = "none";
 			appendWindowToList(w, nameInput.value);
 		});
@@ -109,8 +108,13 @@ function deleteSavedWindow(e, element) {
 	undo[name] = {
 		className: li.className,
 		text: text,
-		w: w
+		w: w,
+		id: w.id
 	};
+	// we save this separately since deleteSavedWindow nixes it.
+	if (w.id) {
+		undo[name].id = w.id
+	}
 
 	// actually perform the deletion
 	backgroundPage.deleteSavedWindow(name);
@@ -126,12 +130,16 @@ function deleteSavedWindow(e, element) {
 // undo a deletion
 // called when the user presse the undo button
 function undoDeleteSavedWindow(e, element) {
-	// TODO: undo is BROKEN!
 	// get data
 	var li = element.parentNode;
 	var name = li.getAttribute("data-name");
 	var undoInfo = undo[name];
 
+	// restore the window id
+	if (undoInfo.id) {
+		undoInfo.w.id = undoInfo.id;
+	}
+	
 	// resave the window
 	backgroundPage.saveWindow(undoInfo.w, name);
 	

@@ -123,6 +123,11 @@ function saveWindow(w, displayName) {
 	localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
 	
 	storeWindow(w, name, displayName);
+	
+	if (w.id) {
+		markWindowAsOpen(w);
+	}
+	
 	return w;
 }
 
