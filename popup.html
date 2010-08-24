@@ -9,7 +9,7 @@
 // FEATURE: support drag & drop merging
 
 var backgroundPage = chrome.extension.getBackgroundPage();
-var savedWindowListEl, formEl, nameInput, template;
+var savedWindowListEl, formEl, nameInput, template, focusUrl;
 var undo = new Object();
 
 function init() {
@@ -20,8 +20,8 @@ function init() {
 	savedWindowListEl = document.getElementById("savedWindowList");
 	formEl = document.getElementById("form");
 	nameInput = document.getElementById("nameInput");
-	
 	template = document.getElementById("template");
+	focusUrl = chrome.extension.getURL("focus.html");
 	
 	// populate list of windows
 	chrome.windows.getCurrent(function(currentWindow) {
@@ -48,7 +48,7 @@ function init() {
 
 // add window to HTML list of windows
 function appendWindowToList(w, currentWindowName) {
-	li = template.cloneNode(true);
+	var li = template.cloneNode(true);
 	li.removeAttribute("id");
 	li.setAttribute("data-name", w.name);
 	
@@ -59,8 +59,7 @@ function appendWindowToList(w, currentWindowName) {
 		text = "This is <b>" + text + "<\/b>.";
 	} else if (w.id) {
 		li.className = "open";
-		li.onclick = null;
-		// FEATURE: make it possible to focus the window
+		li.onclick = function() { focusOpenWindow(w.id); };
 	}
 	setText(li, text);
 	
@@ -84,15 +83,22 @@ function saveWindow() {
 }
 
 // open a saved window
-// called when the user clicks a window name
+// called when the user clicks the name of a saved window that is closed.
 function openSavedWindow(element) {
+	// TODO: refactor to just use name as argument
 	name = element.getAttribute("data-name");
 	backgroundPage.openWindow(name);
 }
 
+// focus an open window
+// called when the user clicks the name of a saved window that is open.
+function focusOpenWindow(windowId) {
+	chrome.tabs.create({url: focusUrl, windowId: windowId, selected: false});
+}
+
 // delete a saved window
 // called when the user presses the delete button
-function deleteSavedWindow(element) {
+function deleteSavedWindow(e, element) {
 	// get data
 	var li = element.parentNode;
 	var name = li.getAttribute("data-name");
@@ -113,11 +119,14 @@ function deleteSavedWindow(element) {
 	li.className = "deleted";
 	setText(li, "<b>" + getDisplayName(w) + "<\/b> was deleted.");
 	// TODO: show the form if current window
+	
+	e.stopPropagation();
 }
 
 // undo a deletion
 // called when the user presse the undo button
-function undoDeleteSavedWindow(element) {
+function undoDeleteSavedWindow(e, element) {
+	// TODO: undo is BROKEN!
 	// get data
 	var li = element.parentNode;
 	var name = li.getAttribute("data-name");
@@ -133,6 +142,8 @@ function undoDeleteSavedWindow(element) {
 	// clean up
 	delete undo[name];
 	// TODO: hide the form if current window
+	
+	e.stopPropagation();
 }
 
 // given a list element, sets the text
@@ -156,10 +167,10 @@ function getDisplayName(w) {
 	<ul id="savedWindowList">
 	 	<li id="template" onclick="openSavedWindow(this);">
 		 	<span class="text">Name</span><!--
-		 --><span class="delete" onclick="deleteSavedWindow(this);">
+		 --><span class="delete" onclick="deleteSavedWindow(event, this);">
 				&times;
 			</span><!--
-		 --><span class="undo" onclick="undoDeleteSavedWindow(this);">
+		 --><span class="undo" onclick="undoDeleteSavedWindow(event, this);">
 				undo
 			</span>
 		</li>

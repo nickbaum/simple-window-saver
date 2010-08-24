@@ -50,10 +50,6 @@ li:hover > .delete {
 	color: black;
 }
 
-.open > .text:hover {
-	cursor: default;
-}
-
 /* CURRENT */
 
 .current, .current:hover {
