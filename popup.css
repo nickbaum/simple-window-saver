@@ -2,6 +2,8 @@
 /* TODO: refactor to use less.js */
 /* TODO: re-order */
 
+/* GENERAL */
+
 body {
 	font-family: "Helvetica", "sans-serif";
 	font-size: 120%;
@@ -13,13 +15,15 @@ body {
 	white-space: nowrap;
 }
 
-li, #form, #incognitoMsg {
+li, #form, #incognitoMsg, #footer {
 	padding: 5px 10px;
 }
 
 #template {
 	display: none;
 }
+
+/* LIST */
 
 li {
 	list-style: none;
@@ -92,6 +96,10 @@ li:hover > .delete {
 	background-color: #fcc;
 }
 
+.deleted > .text:hover {
+	cursor: default;
+}
+
 .deleted > .delete {
 	display: none;
 }
@@ -99,8 +107,6 @@ li:hover > .delete {
 .deleted > .undo {
 	display: inline;
 }
-
-/* UNDO */
 
 .undo {
 	display: none;
@@ -132,9 +138,25 @@ input:focus {
 	outline: none;
 }
 
+/* MISCELLANEOUS */
+
 #incognitoMsg {
 	display: none;
 	background-color: #fcc;
 	border-radius: 10px;
 	margin: 10px 5px;
+}
+
+#footer {
+	font-size: 80%;
+	color: #999;
+	text-align: right;
+}
+
+#footer a {
+	color: #999;
+}
+
+#update {
+	display: none;
 }

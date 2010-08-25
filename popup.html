@@ -17,6 +17,7 @@ function init() {
 	style = document.getElementById("style");
 	style.href = style.href + "?salt=" + Math.random();
 
+	// initialize variables we'll need
 	savedWindowListEl = document.getElementById("savedWindowList");
 	formEl = document.getElementById("form");
 	nameInput = document.getElementById("nameInput");
@@ -44,6 +45,16 @@ function init() {
 			}
 		}
 	});
+	
+	// decrement update message counter
+	var count = backgroundPage.updateMsgCount;
+	if (count > 0) {
+		backgroundPage.updateMsgCount = count - 1;
+		localStorage.updateMsgCount = count - 1;
+		document.getElementById("update").style.display = "block";
+	} else {
+		backgroundPage.updateBadgeForAllWindows();
+	}
 }
 
 // add window to HTML list of windows
@@ -186,7 +197,14 @@ function getDisplayName(w) {
 	<form id="form" onsubmit="return saveWindow();">
 		Save as: <input type="text" id="nameInput" />
 	</form>
-	<div id="incognitoMsg">Note: you can't save incognito windows.</div>
+	<div id="incognitoMsg">Note: you can't save incognito windows.</div>	
+	<div id="footer">
+		<span id="update">
+			<img src="new.png" /> Click on an open window to focus it.<br/>
+			If you like this extension, please <a href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc">rate it</a>. Thanks!<br/>
+		</span>
+		Bugs or suggestions? <a href="" onclick="chrome.tabs.create({url:'mailto:simpleWindowSaver@nickbaum.com'});">Contact me.</a>
+	</div>
 </div>
 
 </body>

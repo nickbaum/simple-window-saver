@@ -9,6 +9,7 @@ The background page is responsible for the following:
 * saving, opening and deleting windows actions from the popups.
 
 TODO: split background.HTML into multiple JS files (closure?)
+FEATURE: omnibox support
 
 */
 
@@ -40,9 +41,19 @@ var tabIdToWindowId = new Object();
 // used to handle moving a single saved tab into an unsaved window
 var windowTabs = new Object();
 
+// used to count how many times we show the update message
+var updateMsgCount = restoreFromLocalStorage("updateMsgCount", 0);
+
 /* INIT */
 
-localStorage.version = "1.0";
+// if the extension has been updated, show the update message 5 times 
+if (parseFloat(localStorage.version) < 1.1) {
+	updateMsgCount = 5;
+	localStorage.version = "1.1";
+}
+if (updateMsgCount > 0) {
+	updateBadgeForAllWindows();
+}
 
 // populate savedWindows from local storage
 // as we go, try matching them to open windows
@@ -207,7 +218,13 @@ function deleteSavedWindow(name) {
 
 // updates the browserAction badge to show the window as saved
 function showSavedBadge(tabId) {
-	chrome.browserAction.setBadgeText({text:"v", tabId:tabId});
+	var text;
+	if (updateMsgCount > 0) {
+		text = "new!";
+	} else {
+		text = "v";
+	}
+	chrome.browserAction.setBadgeText({text:text, tabId:tabId});
 	chrome.browserAction.setBadgeBackgroundColor(
 		{color:[0,255,0,255], tabId:tabId});
 }
@@ -216,7 +233,15 @@ function showSavedBadge(tabId) {
 // because chrome doesn't support per-window badges, we do it per-tab
 // and update it on both window and tab selection changes
 function showUnsavedBadge(tabId) {
-	chrome.browserAction.setBadgeText({text:"", tabId:tabId});
+	var text;
+	if (updateMsgCount > 0) {
+		text = "new!";
+	} else {
+		text = "";
+	}
+	chrome.browserAction.setBadgeText({text:text, tabId:tabId});
+	chrome.browserAction.setBadgeBackgroundColor(
+		{color:[102,170,255,255], tabId:tabId});
 }
 
 // update the badge for the given tab
@@ -233,6 +258,15 @@ function updateBadgeForWindow(windowId) {
 	if(windowId != -1) {
 		chrome.tabs.getSelected(windowId, updateBadgeForTab);
 	}
+}
+
+// update the badge for the given window
+function updateBadgeForAllWindows() {
+	chrome.windows.getAll(null, function(windows) {
+		for (i in windows) {
+			updateBadgeForWindow(windows[i].id);
+		}
+	});
 }
 
 /* TAB EVENTS */
