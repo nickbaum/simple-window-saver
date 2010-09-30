@@ -34,7 +34,7 @@ var closedWindows = new Object();
 
 // Unfortunately, removing a tab doesn't give us a windowId
 // so we need to keep track of that mapping.
-var tabIdToWindowId = new Object();
+var tabIdToSavedWindowId = new Object();
 
 // maps tabIds to windowIds and windowIds to tabIds
 // for windows with only one tab
@@ -158,7 +158,7 @@ function markWindowAsOpen(w) {
 	delete closedWindows[w.name];
 	windowIdToName[w.id] = w.name;
 	for (var i in w.tabs) {
-		tabIdToWindowId[w.tabs[i].id] = w.id;
+		tabIdToSavedWindowId[w.tabs[i].id] = w.id;
 	}
 	updateBadgeForWindow(w.id);
 }
@@ -201,7 +201,7 @@ function deleteSavedWindow(name) {
 	if (w.id) {
 		markWindowAsClosed(w);
 		for (var i in w.tabs) {
-			delete tabIdToWindowId[w.tabs[i].id];
+			delete tabIdToSavedWindowId[w.tabs[i].id];
 		}
 	}
 	
@@ -285,8 +285,8 @@ function onTabCreated(tab) {
 chrome.tabs.onCreated.addListener(onTabCreated);
 
 function onTabDetached(tabId, info) {
-	if (tabIdToWindowId[tabId]) {
-		delete tabIdToWindowId[tabId];
+	if (tabIdToSavedWindowId[tabId]) {
+		delete tabIdToSavedWindowId[tabId];
 	}
 	onTabChanged(tabId, info.oldWindowId);
 }
@@ -303,8 +303,8 @@ function onTabRemoved(tabId) {
 	// and we don't accidentally delete a saved window
 	// TODO: improve this algorithm
 	setTimeout(function(){
-		windowId = tabIdToWindowId[tabId];
-		delete tabIdToWindowId[tabId];
+		windowId = tabIdToSavedWindowId[tabId];
+		delete tabIdToSavedWindowId[tabId];
 		onTabChanged(null, windowId);
 		// TODO: can we handle the case when we close the last tab
 	}, 5000);
@@ -332,7 +332,7 @@ function onTabChanged(tabId, windowId) {
 	getPopulatedWindow(windowId, function(w) {
 		// if the window is saved, we update it
 		if (windowIdToName[windowId]) {
-			tabIdToWindowId[tabId] = windowId;
+			tabIdToSavedWindowId[tabId] = windowId;
 			var name = windowIdToName[windowId];
 			var displayName = savedWindows[name].displayName;
 			storeWindow(w, name, displayName);
