@@ -176,7 +176,7 @@ function openWindow(name) {
 
 	// if opened from a newtab, close the tab
 	chrome.tabs.getSelected(null, function(tab){
-		if(tab.url == "chrome://newtab/") {
+		if (tab.url == "chrome://newtab/") {
 			chrome.tabs.remove(tab.id);
 		}
 	});
@@ -246,7 +246,7 @@ function showUnsavedBadge(tabId) {
 
 // update the badge for the given tab
 function updateBadgeForTab(tab) {
-	if(windowIdToName[tab.windowId]) {
+	if (windowIdToName[tab.windowId]) {
 		showSavedBadge(tab.id);
 	} else {
 		showUnsavedBadge(tab.id);
@@ -255,7 +255,7 @@ function updateBadgeForTab(tab) {
 
 // update the badge for the given window
 function updateBadgeForWindow(windowId) {
-	if(windowId != -1) {
+	if (windowId != -1) {
 		chrome.tabs.getSelected(windowId, updateBadgeForTab);
 	}
 }
@@ -332,6 +332,7 @@ function onTabChanged(tabId, windowId) {
 	getPopulatedWindow(windowId, function(w) {
 		// if the window is saved, we update it
 		if (windowIdToName[windowId]) {
+			tabIdToWindowId[tabId] = windowId;
 			var name = windowIdToName[windowId];
 			var displayName = savedWindows[name].displayName;
 			storeWindow(w, name, displayName);
@@ -348,8 +349,7 @@ function onTabChanged(tabId, windowId) {
 				}
 			}
 		}
-		if(tabId) {
-			tabIdToWindowId[tabId] = windowId;
+		if (tabId) {
 			updateBadgeForTab({id:tabId, windowId:windowId});
 		}
 	});
