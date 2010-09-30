@@ -103,6 +103,7 @@ function openSavedWindow(element) {
 // focus an open window
 // called when the user clicks the name of a saved window that is open.
 function focusOpenWindow(windowId) {
+	// TODO: for some reason, this does not work on Snow Leopard
 	chrome.tabs.create({url: focusUrl, windowId: windowId, selected: false});
 }
 
