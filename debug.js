@@ -12,11 +12,13 @@ debug.db.transaction(function(tx) {
 
 // Log an event
 debug.logEvent = function(eventType, windowId, tabId) {
-  debug.db.transaction(function(tx){
-    var timeStamp = new Date();
-    tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', 
-        [eventType, windowId, tabId, timeStamp], null, debug.onError);
-  });
+  if (windowIdToName[windowId]) {
+		debug.db.transaction(function(tx){
+			var timeStamp = new Date();
+			tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', 
+					[eventType, windowId, tabId, timeStamp], null, debug.onError);
+		});
+  }
 }
 
 // Log errors to the console
