@@ -1,0 +1,29 @@
+<html>
+<head>
+<script>
+	backgroundPage = chrome.extension.getBackgroundPage();
+	
+	function init() {
+		backgroundPage.debug.db.transaction(function(tx) {
+			tx.executeSql('SELECT * FROM event_log', [], renderFunc, backgroundPage.debug.onError);
+		});
+  }
+  
+  function renderFunc(tx, rs) {
+		var rowOutput = "";
+		for (var i=0; i < rs.rows.length; i++) {
+			rowOutput += renderLog(rs.rows.item(i));
+		}
+		var logsElement = document.getElementById('logs');
+		logsElement.innerHTML = rowOutput;
+	}
+	
+	function renderLog(row) {
+		return '<li>event: ' + row.event_type + ', window: ' + row.window_id + ', tab: ' + row.tab_id + '</li>';
+	}
+</script>
+</head>
+<body onload="init();">
+</body>
+<ol id="logs">No events logged yet.</ol>
+</html>
