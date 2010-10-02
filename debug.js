@@ -15,8 +15,7 @@ debug.logEvent = function(eventType, windowId, tabId) {
   if (windowIdToName[windowId]) {
 		debug.db.transaction(function(tx){
 			var timeStamp = new Date();
-			tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', 
-					[eventType, windowId, tabId, timeStamp], null, debug.onError);
+			tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', [eventType, windowId, tabId, timeStamp], null, debug.onError);
 		});
   }
 }
@@ -30,22 +29,22 @@ debug.onError = function(tx, e) {
 debug.onTabAttached = function(tabId, info) {
 	debug.logEvent("tab_attached", info.newWindowId, tabId);
 }
-chrome.tabs.onAttached.addListener(debug.onTabAttached);
+// chrome.tabs.onAttached.addListener(debug.onTabAttached);
 
 debug.onTabCreated = function(tab) {
 	debug.logEvent("tab_created", tab.windowId, tab.id);
 }
-chrome.tabs.onCreated.addListener(debug.onTabCreated);
+// chrome.tabs.onCreated.addListener(debug.onTabCreated);
 
 debug.onTabDetached = function(tabId, info) {
 	debug.logEvent("tab_detached", info.oldWindowId, tabId);
 }
-chrome.tabs.onDetached.addListener(debug.onTabDetached);
+// chrome.tabs.onDetached.addListener(debug.onTabDetached);
 
 debug.onTabMoved = function(tabId, info) {
 	debug.logEvent("tab_moved", info.windowId, tabId);
 }
-chrome.tabs.onMoved.addListener(debug.onTabMoved);
+// chrome.tabs.onMoved.addListener(debug.onTabMoved);
 
 debug.onTabRemoved = function(tabId) {
 	debug.logEvent("tab_removed", tabIdToSavedWindowId[tabId], tabId);
@@ -60,17 +59,17 @@ chrome.tabs.onSelectionChanged.addListener(debug.onTabSelectionChanged);
 debug.onTabUpdated = function(tabId, info, tab) {
 	debug.logEvent("tab_updated", tab.windowId, tabId);
 }
-chrome.tabs.onUpdated.addListener(debug.onTabUpdated);
+// chrome.tabs.onUpdated.addListener(debug.onTabUpdated);
 
 debug.onWindowCreated = function(window) {
 	debug.logEvent("window_created", window.id, 0);
 }
-chrome.windows.onCreated.addListener(debug.onWindowCreated);
+// chrome.windows.onCreated.addListener(debug.onWindowCreated);
 
 debug.onWindowFocusChanged = function(windowId) {
 	debug.logEvent("window_focused", windowId, 0);
 }
-chrome.windows.onFocusChanged.addListener(debug.onWindowFocusChanged);
+// chrome.windows.onFocusChanged.addListener(debug.onWindowFocusChanged);
 
 debug.onWindowRemoved = function(windowId) {
 	debug.logEvent("window_removed", windowId, 0);
