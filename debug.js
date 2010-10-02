@@ -1,0 +1,1 @@
+chrome.browserAction.setIcon({path:"do_not_package/debug_icon19.png"});
