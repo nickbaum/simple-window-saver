@@ -10,7 +10,7 @@ cd ../../
 
 # replace debug.js with empty file
 mv simple-window-saver/debug.js simple-window-saver/do_not_package/
->simple-window-saver/debug.js
+cp simple-window-saver/do_not_package/empty_debug.js simple-window-saver/debug.js
 
 # zip for easy upload to the gallery
 zip -rq simple-window-saver simple-window-saver -x \*do_not_package\* \*.DS_Store \*.git\* \*README.txt;
