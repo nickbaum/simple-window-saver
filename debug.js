@@ -54,7 +54,7 @@ chrome.tabs.onRemoved.addListener(debug.onTabRemoved);
 debug.onTabSelectionChanged = function(tabId, info) {
 	debug.logEvent("tab_selected", info.windowId, tabId);
 }
-chrome.tabs.onSelectionChanged.addListener(debug.onTabSelectionChanged);
+// chrome.tabs.onSelectionChanged.addListener(debug.onTabSelectionChanged);
 
 debug.onTabUpdated = function(tabId, info, tab) {
 	debug.logEvent("tab_updated", tab.windowId, tabId);

@@ -22,10 +22,19 @@
 	  var timeStamp = new Date(row.time_stamp);
 		return row.event_type + ', ' + row.window_id + ', ' + row.tab_id + ', ' + timeStamp.getTime() + '\n';
 	}
+	
+	function clearAllData() {
+		if (confirm("Clear all log data?")) { 
+ 			backgroundPage.debug.db.transaction(function(tx) {
+				tx.executeSql('DELETE FROM event_log', null, init, backgroundPage.debug.onError);
+			});
+		}
+	}
 </script>
 </head>
 <body onload="init();">
 CSV Format: "event_type, window_id, tab_id, timestamp (ms since epoch)"<br>
-<textarea cols="80" rows="40" id="logs">No events logged yet.</textarea>
+<textarea cols="80" rows="40" id="logs">No events logged yet.</textarea><br>
+<a href="javascript:clearAllData();">clear all data</a>
 </body>
 </html>
