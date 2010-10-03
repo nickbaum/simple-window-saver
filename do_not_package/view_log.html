@@ -19,11 +19,13 @@
 	}
 	
 	function renderLog(row) {
-		return '<li>event: ' + row.event_type + ', window: ' + row.window_id + ', tab: ' + row.tab_id + '</li>';
+	  var timeStamp = new Date(row.time_stamp);
+		return row.event_type + ', ' + row.window_id + ', ' + row.tab_id + ', ' + timeStamp.getTime() + '\n';
 	}
 </script>
 </head>
 <body onload="init();">
+CSV Format: "event_type, window_id, tab_id, timestamp (ms since epoch)"<br>
+<textarea cols="80" rows="40" id="logs">No events logged yet.</textarea>
 </body>
-<ol id="logs">No events logged yet.</ol>
 </html>
