@@ -5,158 +5,158 @@
 /* GENERAL */
 
 body {
-	font-family: "Helvetica", "sans-serif";
-	font-size: 120%;
+  font-family: "Helvetica", "sans-serif";
+  font-size: 120%;
 }
 
 * {
-	margin: 0;
-	padding: 0;
-	white-space: nowrap;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
 }
 
 li, #form, #incognitoMsg, #footer {
-	padding: 5px 10px;
+  padding: 5px 10px;
 }
 
 #template {
-	display: none;
+  display: none;
 }
 
 /* LIST */
 
 li {
-	list-style: none;
-	border-radius: 10px;
-	margin: 10px 5px;
-	color: blue;
+  list-style: none;
+  border-radius: 10px;
+  margin: 10px 5px;
+  color: blue;
 }
 
 li:hover {
-	background-color: #eee;
+  background-color: #eee;
 }
 
 li:hover > .delete {
-	visibility: visible;
+  visibility: visible;
 }
 
 .text {
-	display: inline;
+  display: inline;
 }
 
 .text:hover {
-	cursor: pointer;
+  cursor: pointer;
 }
 
 /* OPEN */
 
 .open {
-	color: black;
+  color: black;
 }
 
 /* CURRENT */
 
 .current, .current:hover {
-	background-color: #ff9;
-	color: black;
+  background-color: #ff9;
+  color: black;
 }
 
 .current > .text:hover {
-	cursor: default;
+  cursor: default;
 }
 
 /* DELETE */
 
 .delete {
-	margin-left: 20px;
-	float: right;
-	display: inline;
-	visibility: hidden;
-	color: white;
-	background-color: #fcc;
-	text-align: center;
-	border-radius: 10px;
-	width: 20px;
-	height: 20px;
-	line-height: 16px;
-	font-weight: bold;
-	position: relative;
-	top: 1px;
+  margin-left: 20px;
+  float: right;
+  display: inline;
+  visibility: hidden;
+  color: white;
+  background-color: #fcc;
+  text-align: center;
+  border-radius: 10px;
+  width: 20px;
+  height: 20px;
+  line-height: 16px;
+  font-weight: bold;
+  position: relative;
+  top: 1px;
 }
 
 .delete:hover {
-	cursor: pointer;
-	background-color: #f66;
+  cursor: pointer;
+  background-color: #f66;
 }
 
 /* DELETED */
 
 .deleted, .deleted:hover {
-	color: black;
-	background-color: #fcc;
+  color: black;
+  background-color: #fcc;
 }
 
 .deleted > .text:hover {
-	cursor: default;
+  cursor: default;
 }
 
 .deleted > .delete {
-	display: none;
+  display: none;
 }
 
 .deleted > .undo {
-	display: inline;
+  display: inline;
 }
 
 .undo {
-	display: none;
-	color: blue;
-	float: right;
-	margin-left: 20px;
+  display: none;
+  color: blue;
+  float: right;
+  margin-left: 20px;
 }
 
 .undo:hover  {
-	cursor: pointer;
+  cursor: pointer;
 }
 
 /* FORM */
 
 #form {
-	display: none;
-	margin: 5px;
+  display: none;
+  margin: 5px;
 }
 
 input {
-	padding: 3px;
-	font-weight: bold;
-	font-size:100%;
-	border: 3px solid #ccc;
-	border-radius: 5px;
+  padding: 3px;
+  font-weight: bold;
+  font-size:100%;
+  border: 3px solid #ccc;
+  border-radius: 5px;
 }
 
 input:focus {
-	outline: none;
+  outline: none;
 }
 
 /* MISCELLANEOUS */
 
 #incognitoMsg {
-	display: none;
-	background-color: #fcc;
-	border-radius: 10px;
-	margin: 10px 5px;
+  display: none;
+  background-color: #fcc;
+  border-radius: 10px;
+  margin: 10px 5px;
 }
 
 #footer {
-	font-size: 80%;
-	color: #999;
-	text-align: right;
+  font-size: 80%;
+  color: #999;
+  text-align: right;
 }
 
 #footer a {
-	color: #999;
+  color: #999;
 }
 
 #update {
-	display: none;
+  display: none;
 }

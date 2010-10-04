@@ -12,6 +12,6 @@
   },
   "background_page": "background.html",
   "permissions": [
-		"tabs"  
+    "tabs"  
   ]
 }
