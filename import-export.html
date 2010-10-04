@@ -19,8 +19,11 @@ function exportSavedWindows() {
     for (j in savedWindow.tabs) {
       url += encodeURIComponent("#SWS-tab#" + savedWindow.tabs[j].url);
     }
-  }
-  chrome.bookmarks.create({title: "Saved Windows (click to import)", url:url, parentId:"2"});
+  } 
+  chrome.bookmarks.getTree(function(tree){ 
+    var otherBookmarksId = tree[0].children[1].id; 
+    chrome.bookmarks.create({title: "Saved Windows (click to import)", url:url, parentId:otherBookmarksId});
+  }); 
 }
 
 </script>
