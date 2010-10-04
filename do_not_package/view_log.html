@@ -3,13 +3,15 @@
 <script>
   backgroundPage = chrome.extension.getBackgroundPage();
   
-  function init() {
+  // get all the log data from the debug database
+  function getLogs() {
     backgroundPage.debug.db.transaction(function(tx) {
-      tx.executeSql('SELECT * FROM event_log', [], renderFunc, backgroundPage.debug.onError);
+      tx.executeSql('SELECT * FROM event_log', [], renderLogs, backgroundPage.debug.onError);
     });
   }
   
-  function renderFunc(tx, rs) {
+  // update the textarea with the log data
+  function renderLogs(tx, rs) {
     var rowOutput = '';
     for (var i=0; i < rs.rows.length; i++) {
       rowOutput += renderLog(rs.rows.item(i));
@@ -18,13 +20,15 @@
     logsElement.innerHTML = rowOutput;
   }
   
+  // render a single log row
   function renderLog(row) {
     var timeStamp = new Date(row.time_stamp);
     return row.event_type + ', ' + row.window_id + ', ' + row.tab_id + ', ' + timeStamp.getTime() + '\n';
   }
   
-  function clearAllData() {
-    if (confirm('Clear all log data?')) { 
+  // delete all the log data
+  function deleteAllLogs() {
+    if (confirm('Do you really want to delete all log data?')) {
       backgroundPage.debug.db.transaction(function(tx) {
         tx.executeSql('DELETE FROM event_log', null, init, backgroundPage.debug.onError);
       });
@@ -32,9 +36,9 @@
   }
 </script>
 </head>
-<body onload="init();">
+<body onload="getLogs();">
 CSV Format: 'event_type, window_id, tab_id, timestamp (ms since epoch)'<br>
 <textarea cols="80" rows="40" id="logs">No events logged yet.</textarea><br>
-<a href="javascript:clearAllData();">clear all data</a>
+<a href="javascript:deleteAllLogs();">delet all log data</a>
 </body>
 </html>
