@@ -55,6 +55,9 @@ function init() {
 	} else {
 		backgroundPage.updateBadgeForAllWindows();
 	}
+	
+	// this does nothing in the packaged extension
+	backgroundPage.debug.addDebugUI(document);
 }
 
 // add window to HTML list of windows

@@ -10,7 +10,7 @@
   }
   
   function renderFunc(tx, rs) {
-		var rowOutput = "";
+		var rowOutput = '';
 		for (var i=0; i < rs.rows.length; i++) {
 			rowOutput += renderLog(rs.rows.item(i));
 		}
@@ -24,7 +24,7 @@
 	}
 	
 	function clearAllData() {
-		if (confirm("Clear all log data?")) { 
+		if (confirm('Clear all log data?')) { 
  			backgroundPage.debug.db.transaction(function(tx) {
 				tx.executeSql('DELETE FROM event_log', null, init, backgroundPage.debug.onError);
 			});
@@ -33,7 +33,7 @@
 </script>
 </head>
 <body onload="init();">
-CSV Format: "event_type, window_id, tab_id, timestamp (ms since epoch)"<br>
+CSV Format: 'event_type, window_id, tab_id, timestamp (ms since epoch)'<br>
 <textarea cols="80" rows="40" id="logs">No events logged yet.</textarea><br>
 <a href="javascript:clearAllData();">clear all data</a>
 </body>
