@@ -11,7 +11,9 @@
     "popup": "popup.html"
   },
   "background_page": "background.html",
+  "options_page": "export.html",
   "permissions": [
-    "tabs"  
+    "tabs",
+    "bookmarks"
   ]
 }
