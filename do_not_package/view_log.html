@@ -1,35 +1,35 @@
 <html>
 <head>
 <script>
-	backgroundPage = chrome.extension.getBackgroundPage();
-	
-	function init() {
-		backgroundPage.debug.db.transaction(function(tx) {
-			tx.executeSql('SELECT * FROM event_log', [], renderFunc, backgroundPage.debug.onError);
-		});
+  backgroundPage = chrome.extension.getBackgroundPage();
+  
+  function init() {
+    backgroundPage.debug.db.transaction(function(tx) {
+      tx.executeSql('SELECT * FROM event_log', [], renderFunc, backgroundPage.debug.onError);
+    });
   }
   
   function renderFunc(tx, rs) {
-		var rowOutput = '';
-		for (var i=0; i < rs.rows.length; i++) {
-			rowOutput += renderLog(rs.rows.item(i));
-		}
-		var logsElement = document.getElementById('logs');
-		logsElement.innerHTML = rowOutput;
-	}
-	
-	function renderLog(row) {
-	  var timeStamp = new Date(row.time_stamp);
-		return row.event_type + ', ' + row.window_id + ', ' + row.tab_id + ', ' + timeStamp.getTime() + '\n';
-	}
-	
-	function clearAllData() {
-		if (confirm('Clear all log data?')) { 
- 			backgroundPage.debug.db.transaction(function(tx) {
-				tx.executeSql('DELETE FROM event_log', null, init, backgroundPage.debug.onError);
-			});
-		}
-	}
+    var rowOutput = '';
+    for (var i=0; i < rs.rows.length; i++) {
+      rowOutput += renderLog(rs.rows.item(i));
+    }
+    var logsElement = document.getElementById('logs');
+    logsElement.innerHTML = rowOutput;
+  }
+  
+  function renderLog(row) {
+    var timeStamp = new Date(row.time_stamp);
+    return row.event_type + ', ' + row.window_id + ', ' + row.tab_id + ', ' + timeStamp.getTime() + '\n';
+  }
+  
+  function clearAllData() {
+    if (confirm('Clear all log data?')) { 
+      backgroundPage.debug.db.transaction(function(tx) {
+        tx.executeSql('DELETE FROM event_log', null, init, backgroundPage.debug.onError);
+      });
+    }
+  }
 </script>
 </head>
 <body onload="init();">
