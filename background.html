@@ -99,6 +99,7 @@ function restoreFromLocalStorage(key, defaultValue) {
 // we are optimistic here: as long as the tabs of the new window
 // match those of the saved window, we consider them equal
 // even if the new window has more tabs
+// TODO: try disregarding query strings (might be better?)
 function windowsAreEqual(currentWindow, savedWindow) {
   if (currentWindow.incognito) {
     return false;
