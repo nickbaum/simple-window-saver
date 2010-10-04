@@ -10,7 +10,7 @@ function exportSavedWindows() {
   var backgroundPage = chrome.extension.getBackgroundPage();
   var savedWindowNames = backgroundPage.savedWindowNames;
   var savedWindows = backgroundPage.savedWindows;
-  var url = chrome.extension.getURL("export-import.html?data=");
+  var url = chrome.extension.getURL("import-export.html?data=");
   for (i in savedWindowNames) {
     var name = savedWindowNames[i];
     var savedWindow = savedWindows[name];
