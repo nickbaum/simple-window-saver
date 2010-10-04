@@ -23,15 +23,14 @@
   
   // render a single log row
   function renderLog(row) {
-    var timeStamp = new Date(row.time_stamp);
-    return row.event_type + ', ' + row.window_id + ', ' + row.tab_id + ', ' + timeStamp.getTime() + '\n';
+    return row.event_type + ', ' + row.window_id + ', ' + row.tab_id + ', ' + row.time_stamp + '\n';
   }
   
   // delete all the log data
   function deleteAllLogs() {
     if (confirm('Do you really want to delete all log data?')) {
       backgroundPage.debug.db.transaction(function(tx) {
-        tx.executeSql('DELETE FROM event_log', null, init, backgroundPage.debug.onError);
+        tx.executeSql('DELETE FROM event_log', null, updateLogView, backgroundPage.debug.onError);
       });
     }
   }
