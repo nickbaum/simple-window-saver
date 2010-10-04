@@ -4,8 +4,19 @@
 <title>Export your saved windows (Simple Window Saver)</title>
 <script>
 
-// stores all the saved window data in a bookmark
+// checks for data (in which case show import UI)
+function init() {
+  var data = window.location.search;
+  data = data.split("?data=");
+  if (data[1]) {
+    document.getElementById("export").style.display = "none";
+    data = decodeURIComponent(data[1]);
+  } else {   
+    document.getElementById("import").style.display = "none";
+  }
+}
 
+// stores all the saved window data in a bookmark
 function exportSavedWindows() {
   var backgroundPage = chrome.extension.getBackgroundPage();
   var savedWindowNames = backgroundPage.savedWindowNames;
@@ -29,38 +40,45 @@ function exportSavedWindows() {
 </script>
 </head>
 
-<body>
+<body onload="init();">
 
-<h1>Export your saved windows</h1>
+<div id="export">
+  <h1>Export your saved windows</h1>
+  
+  <p>
+    <span style="color:red">Warning:</span> this functionality is <span style="color:red">experimental</span>. Use at your own risk.
+  </p>
+  
+  <input type="button" id="export-button" value="export your saved windows" onclick="exportSavedWindows();">
+  
+  <h2>Some things you might be wondering about</h2>
+  
+  <p>
+    <b>What happens when I click the export button above?</b><br>
+    When you click export, Simple Window Saver will create a bookmark in your <i>'Other Bookmarks'</i> folder called <b>'Saved Windows (click to import)'</b>. As the name indicates, clicking this link will prompt you to
+    restore these saved windows.
+  </p>
+  
+  <p>
+    <b>How does this work?</b><br>
+    The bookmark actually contains the information about the saved windows.
+  </p>
+  
+  <p>
+    <b>Clever - but why is this useful?</b><br>
+    Well, Google Chrome comes with bookmark sync built-in (go to <i>Wrench > Preferences > Personal Stuff</i>). Now suppose you get a new computer. You would export your saved windows on your old computer, sync the bookmarks with the new computer, then simply click the import bookmark to restore your saved windows. Sweet and simple!
+  </p>
+  
+  <p>
+    <b>Ok, sweet. So is there anything I need to worry about?</b><br>
+    Well yes, since you ask. Keep in mind that this feature is <span style="color:red">experimental</span>, so there's still work going on with it. I'll prompt you before doing anything, and I try to do some basic dupe detection, but I can't guarantee that it won't mess up your saved windows. Consider yourself warned!
+  </p>
+</div>
 
-<p>
-  <span style="color:red">Warning:</span> this functionality is <span style="color:red">experimental</span>. Use at your own risk.
-</p>
-
-<input type="button" id="export-button" value="export your saved windows" onclick="exportSavedWindows();">
-
-<h2>Some things you might be wondering about</h2>
-
-<p>
-  <b>What happens when I click the export button above?</b><br>
-  When you click export, Simple Window Saver will create a bookmark in your <i>'Other Bookmarks'</i> folder called <b>'Saved Windows (click to import)'</b>. As the name indicates, clicking this link will prompt you to
-  restore these saved windows.
-</p>
-
-<p>
-  <b>How does this work?</b><br>
-  The bookmark actually contains the information about the saved windows.
-</p>
-
-<p>
-  <b>Clever - but why is this useful?</b><br>
-  Well, Google Chrome comes with bookmark sync built-in (go to <i>Wrench > Preferences > Personal Stuff</i>). Now suppose you get a new computer. You would export your saved windows on your old computer, sync the bookmarks with the new computer, then simply click the import bookmark to restore your saved windows. Sweet and simple!
-</p>
-
-<p>
-  <b>Ok, sweet. So is there anything I need to worry about?</b><br>
-  Well yes, since you ask. Keep in mind that this feature is <span style="color:red">experimental</span>, so there's still work going on with it. I'll prompt you before doing anything, and I try to do some basic dupe detection, but I can't guarantee that it won't mess up your saved windows. Consider yourself warned!
-</p>
+<div id="import">
+  <h1>Welcome to import!</h1>
+  <ol id="windowsToImport"></ol>
+</div>
 
 </body>
 
