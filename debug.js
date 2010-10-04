@@ -38,9 +38,19 @@ debug.logEvent = function(eventType, windowId, tabId) {
   if (onlyLogEventsFromSavedWindows && windowIdToName[windowId]) {
     debug.db.transaction(function(tx){
       var timeStamp = new Date();
-      tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', [eventType, windowId, tabId, timeStamp], null, debug.onError);
+      tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', [eventType, windowId, tabId, timeStamp], debug.onEventLogged, debug.onError);
     });
   }
+}
+
+// if we're viewing the log in another tab, we update it after logging an event.
+debug.onEventLogged = function() {
+	views = chrome.extension.getViews({type: "tab"});
+	for (var i in views) {
+		if (views[i].updateLogView) {
+			views[i].updateLogView();
+		}
+	}
 }
 
 // log database errors to the console

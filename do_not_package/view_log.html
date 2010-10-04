@@ -4,7 +4,7 @@
   backgroundPage = chrome.extension.getBackgroundPage();
   
   // get all the log data from the debug database
-  function getLogs() {
+  function updateLogView() {
     backgroundPage.debug.db.transaction(function(tx) {
       tx.executeSql('SELECT * FROM event_log', [], renderLogs, backgroundPage.debug.onError);
     });
@@ -36,7 +36,7 @@
   }
 </script>
 </head>
-<body onload="getLogs();">
+<body onload="updateLogView();">
 CSV Format: 'event_type, window_id, tab_id, timestamp (ms since epoch)'<br>
 <textarea cols="80" rows="40" id="logs">No events logged yet.</textarea><br>
 <a href="javascript:deleteAllLogs();">delete all log data</a>
