@@ -77,7 +77,7 @@ debug.onTabAttached = function(tabId, info) {
 debug.onTabCreated = function(tab) {
   debug.logEvent('tab_created', tab.windowId, tab.id);
 }
-chrome.tabs.onCreated.addListener(debug.onTabCreated);
+// chrome.tabs.onCreated.addListener(debug.onTabCreated);
 
 debug.onTabDetached = function(tabId, info) {
   debug.logEvent('tab_detached', info.oldWindowId, tabId);
@@ -97,7 +97,7 @@ chrome.tabs.onRemoved.addListener(debug.onTabRemoved);
 debug.onTabSelectionChanged = function(tabId, info) {
   debug.logEvent('tab_selected', info.windowId, tabId);
 }
-// chrome.tabs.onSelectionChanged.addListener(debug.onTabSelectionChanged);
+chrome.tabs.onSelectionChanged.addListener(debug.onTabSelectionChanged);
 
 debug.onTabUpdated = function(tabId, info, tab) {
   debug.logEvent('tab_updated', tab.windowId, tabId);
@@ -107,7 +107,7 @@ debug.onTabUpdated = function(tabId, info, tab) {
 debug.onWindowCreated = function(window) {
   debug.logEvent('window_created', window.id, 0);
 }
-chrome.windows.onCreated.addListener(debug.onWindowCreated);
+// chrome.windows.onCreated.addListener(debug.onWindowCreated);
 
 debug.onWindowFocusChanged = function(windowId) {
   debug.logEvent('window_focused', windowId, 0);
