@@ -29,18 +29,15 @@ debug.db.transaction(function(tx) {
   tx.executeSql('CREATE TABLE IF NOT EXISTS event_log(ID INTEGER PRIMARY KEY ASC, event_type TEXT, window_id INTEGER, tab_id INTEGER, time_stamp DATETIME)', []);
 });
 
-// by default, we only log events from saved windows
-var onlyLogEventsFromSavedWindows = true;
-
 // log an event
 // we attach this to the various event listeners below
+// TODO: re-enable logging only for saved windows
 debug.logEvent = function(eventType, windowId, tabId) {
-  if (onlyLogEventsFromSavedWindows && windowIdToName[windowId]) {
-    debug.db.transaction(function(tx){
-      var timeStamp = (new Date()).getTime();
-      tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', [eventType, windowId, tabId, timeStamp], debug.onEventLogged, debug.onError);
-    });
-  }
+	var timeStamp = (new Date()).getTime();
+	debug.db.transaction(function(tx){
+		console.log(eventType + " w: " + windowId + " t: " + tabId);
+		tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', [eventType, windowId, tabId, timeStamp], debug.onEventLogged, debug.onError);
+	});
 }
 
 // if we're viewing the log in another tab, we update it after logging an event.
