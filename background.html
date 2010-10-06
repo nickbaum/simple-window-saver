@@ -198,16 +198,16 @@ function openWindow(name) {
 
 // removed a saved window
 function deleteSavedWindow(name) {
-  var w = savedWindows[name];
+  var savedWindow = savedWindows[name];
   
-  if (w.id) {
-    markWindowAsClosed(w);
-    for (var i in w.tabs) {
-      delete tabIdToSavedWindowId[w.tabs[i].id];
+  if (savedWindow.id) {
+    markWindowAsClosed(savedWindow);
+    for (var i in savedWindow.tabs) {
+      delete tabIdToSavedWindowId[savedWindow.tabs[i].id];
     }
   }
   
-  delete closedWindows[w.name];
+  delete closedWindows[savedWindow.name];
   delete localStorage[name];
   delete savedWindows[name];
   savedWindowNames.splice(savedWindowNames.indexOf(name), 1);
@@ -393,8 +393,8 @@ var clearTimeoutForWindowId(windowId) {
 function onWindowRemoved(windowId) {
   var windowName = windowIdToName[windowId];
   if (windowName) {
-    var w = savedWindows[windowName];
-    markWindowAsClosed(w);
+    var savedWindow = savedWindows[windowName];
+    markWindowAsClosed(savedWindow);
   }
   clearTimeoutForWindowId(windowId);
 }
