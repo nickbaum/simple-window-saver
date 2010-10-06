@@ -305,6 +305,7 @@ function onTabRemoved(tabId) {
   // because closing a window also triggers tab removal events
   // we delay updating the window to give the window a chance to close
   onTabChangedWithTimeout(tabId, windowId);
+  windowIdToTimeout[windowId].count = getNumberOfPendingClosedTabs(windowId) + 1;
   // TODO: can we handle the case when we close the last tab
 }
 chrome.tabs.onRemoved.addListener(onTabRemoved);
@@ -373,18 +374,30 @@ function getPopulatedWindow(windowId, callback) {
 // sets a timeout to update the state of a window after 5 seconds
 // if such a timer already exists, resets it
 function onTabChangedWithTimeout(tabId, windowId) {
+  var count = getNumberOfPendingClosedTabs(windowId);
   clearTimeoutForWindowId(windowId);
-  windowIdToTimeout[windowId] = setTimeout(function(){
+  var timeout = setTimeout(function(){
     onTabChanged(tabId, windowId);
   }, 5000);
+  windowIdToTimeout[windowId] = {count: count, timeout: timeout};
 }
 
 // cancels the timer on a window
-var clearTimeoutForWindowId(windowId) {
-  var timeout = windowIdToTimeout[windowId];
-  if (timeout) {
-    clearTimeout(timeout);
+function clearTimeoutForWindowId(windowId) {
+  var timeoutData = windowIdToTimeout[windowId];
+  if (timeoutData) {
+    clearTimeout(timeoutData.timeout);
     delete windowIdToTimeout[windowId];
+  }
+}
+
+// returns the number of onTabClose events that are pending for this window
+function getNumberOfPendingClosedTabs(windowId) {
+  var timeoutData = windowIdToTimeout[windowId];
+  if (timeoutData) {
+    return timeoutData.count;
+  } else {
+    return 0;
   }
 }
 
