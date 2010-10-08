@@ -176,6 +176,7 @@ function openWindow(name) {
   var savedWindow = savedWindows[name];
 
   // if opened from a newtab, close the tab
+  // TODO: open saved window in existing window if it's clean
   chrome.tabs.getSelected(null, function(tab){
     if (tab.url == "chrome://newtab/") {
       chrome.tabs.remove(tab.id);
