@@ -191,32 +191,33 @@ function openWindow(name) {
           chrome.tabs.remove(tab.id);
         }
       }
+      
+      // this is a little helper function
+      // we need it because if we don't have a window yet
+      // we'll need to do this work asynchronously
+      var openWindowHelper = function openWindowHelper(savedWindow, windowId) {
+        savedWindow.id = windowId;
+        markWindowAsOpen(savedWindow);
+        for (var i in savedWindow.tabs) {
+          if (i > 0) {
+            // TODO: there could be a race here, if the window gets saved
+            chrome.tabs.create({url:savedWindow.tabs[i].url, windowId: windowId});
+          }
+        }
+      }
+      
       // If we're re-using the window, we open the tabs directly.
       if (windowId) {
         chrome.tabs.update(tab.id, {url:savedWindow.tabs[0].url});
-        openWindowHelper(savedWindow, windowId, callback);
+        openWindowHelper(savedWindow, windowId);
       } else {
         // Otherwise we create a window and open the tabs in it.
         chrome.windows.create({url:savedWindow.tabs[0].url}, function(w){
-          openWindowHelper(savedWindow, w.id, callback);
+          openWindowHelper(savedWindow, w.id);
         });
       }
     });
   });
-}
-
-// opens a saved window in the given window
-// WARNING: this function is a bit strange in that it skips the first tab
-// it's really only meant to be used by openWindow (above)
-function openWindowHelper(savedWindow, windowId) {
-  savedWindow.id = windowId;
-  markWindowAsOpen(savedWindow);
-  for (var i in savedWindow.tabs) {
-    if (i > 0) {
-      // TODO: there could be a race here, if the window gets saved
-      chrome.tabs.create({url:savedWindow.tabs[i].url, windowId: windowId});
-    }
-  }
 }
 
 // removed a saved window
