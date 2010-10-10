@@ -3,7 +3,13 @@
 <title>View log (Simple Window Saver)</title>
 <script>
   backgroundPage = chrome.extension.getBackgroundPage();
+
+  // flag whether to display timestamps (as opposed to epochs)
+  var useTimestamps = false;
   
+  // flag whether to display time differences
+  var useDiff = false;
+
   // get all the log data from the debug database
   function updateLogView() {
     backgroundPage.debug.db.transaction(function(tx) {
@@ -14,16 +20,50 @@
   // update the textarea with the log data
   function renderLogs(tx, rs) {
     var rowOutput = '';
+    var lastTime = null;
     for (var i=0; i < rs.rows.length; i++) {
-      rowOutput += renderLog(rs.rows.item(i));
+      if (i > 0)
+        lastTime = rs.rows.item(i-1).time_stamp;
+      rowOutput += renderLog(rs.rows.item(i), lastTime);
     }
     var logsElement = document.getElementById('logs');
     logsElement.innerHTML = rowOutput;
   }
   
   // render a single log row
-  function renderLog(row) {
-    return row.event_type + ', ' + row.window_id + ', ' + row.tab_id + ', ' + row.time_stamp + '\n';
+  function renderLog(row, lastTime) {
+    var diff = "";
+    if (useDiff && lastTime) {
+        diff = row.time_stamp - lastTime;
+        diff = ', ' + diff + ', ' + diff/1000;
+    }
+    var displayTime;
+    if (useTimestamps) {
+      var eventDate = new Date(row.time_stamp);
+      displayTime = eventDate.getFullYear() + '-' +
+                    padTime(eventDate.getMonth() + 1) + '-' +
+                    padTime(eventDate.getDate()) + ' ' +
+                    padTime(eventDate.getHours(), false) + ':' +
+                    padTime(eventDate.getMinutes(), false) + ':' +
+                    padTime(eventDate.getSeconds(), false) + '.' +
+                    padTime(eventDate.getMilliseconds(), true);
+    } else {
+      displayTime = row.time_stamp;
+    }
+    return row.event_type + ', ' + row.window_id + ', ' + row.tab_id + ', ' + displayTime + diff + '\n';
+  }
+
+  // helper function to pad time values with leading zeros
+  function padTime(component, isMillis) {
+      if (isMillis)
+        if (component < 10)
+          return "00" + component;
+        else if (component < 100)
+          return "0" + component;
+        else
+          return component;
+     else
+       return (component < 10) ? "0" + component : component;
   }
   
   // delete all the log data
@@ -34,11 +74,22 @@
       });
     }
   }
+
+  // toggle given parameter and update log view accordingly
+  function toggleDisplayParam(param) {
+      if (param == "timeformat")
+          useTimestamps = (useTimestamps == true) ? false : true;
+      else if (param == "diff")
+          useDiff = (useDiff == true) ? false : true;
+      updateLogView();
+  }
 </script>
 </head>
 <body onload="updateLogView();">
-CSV Format: 'event_type, window_id, tab_id, timestamp (ms since epoch)'<br>
+CSV Format: 'event_type, window_id, tab_id, time (ms since epoch/timestamp)[, diff (ms), diff (s)]'<br>
 <textarea cols="80" rows="40" id="logs">No events logged yet.</textarea><br>
-<a href="javascript:deleteAllLogs();">delete all log data</a>
+<a href="javascript:deleteAllLogs();">delete all log data</a> |
+<a href="javascript:toggleDisplayParam('timeformat');">toggle time format</a> |
+<a href="javascript:toggleDisplayParam('diff');">toggle diff</a> |
 </body>
 </html>
