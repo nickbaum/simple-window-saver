@@ -4,13 +4,17 @@
 <title>Export your saved windows (Simple Window Saver)</title>
 <script>
 
+var backgroundPage = chrome.extension.getBackgroundPage();
+
 // checks for data (in which case show import UI)
 function init() {
-  var data = window.location.search;
-  data = data.split("?data=");
+  var data = window.location.search.split("?data=");
   if (data[1]) {
     document.getElementById("export").style.display = "none";
-    data = decodeURIComponent(data[1]);
+    data = JSON.parse(decodeURIComponent(data[1]));
+    for (i in data) {
+      backgroundPage.saveWindow({tabs:data[i].tabs}, data[i].displayName);
+    }
   } else {   
     document.getElementById("import").style.display = "none";
   }
@@ -18,22 +22,28 @@ function init() {
 
 // stores all the saved window data in a bookmark
 function exportSavedWindows() {
-  var backgroundPage = chrome.extension.getBackgroundPage();
   var savedWindowNames = backgroundPage.savedWindowNames;
   var savedWindows = backgroundPage.savedWindows;
   var url = chrome.extension.getURL("import-export.html?data=");
+  var data = new Array();
   for (i in savedWindowNames) {
     var name = savedWindowNames[i];
     var savedWindow = savedWindows[name];
-    url += encodeURIComponent("#SWS-name#" + name);
-    url += encodeURIComponent("#SWS-display-name#" + savedWindow.displayName);
-    for (j in savedWindow.tabs) {
-      url += encodeURIComponent("#SWS-tab#" + savedWindow.tabs[j].url);
+    var savedWindowTabs = savedWindow.tabs;
+    var tabs = new Array();
+    for (j in savedWindowTabs) {
+      tabs[j] = savedWindowTabs[j].url;
     }
-  } 
+    var obj = new Object();
+    obj.displayName = savedWindow.displayName;
+    obj.tabs = tabs;
+    data[i] = obj;
+  }
+  url += encodeURIComponent(JSON.stringify(data));
   chrome.bookmarks.getTree(function(tree){ 
-    var otherBookmarksId = tree[0].children[1].id; 
-    chrome.bookmarks.create({title: "Saved Windows (click to import)", url:url, parentId:otherBookmarksId});
+    var otherBookmarksId = tree[0].children[1].id;
+    var bookmarkName = "Saved Windows - " + (new Date()).toDateString() + " (click to import)"
+    chrome.bookmarks.create({title: bookmarkName, url:url, parentId:otherBookmarksId});
   }); 
 }
 
