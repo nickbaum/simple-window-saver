@@ -29,18 +29,15 @@ debug.db.transaction(function(tx) {
   tx.executeSql('CREATE TABLE IF NOT EXISTS event_log(ID INTEGER PRIMARY KEY ASC, event_type TEXT, window_id INTEGER, tab_id INTEGER, time_stamp DATETIME)', []);
 });
 
-// by default, we only log events from saved windows
-var onlyLogEventsFromSavedWindows = true;
-
 // log an event
 // we attach this to the various event listeners below
+// TODO: re-enable logging only for saved windows
 debug.logEvent = function(eventType, windowId, tabId) {
-  if (onlyLogEventsFromSavedWindows && windowIdToName[windowId]) {
-    debug.db.transaction(function(tx){
-      var timeStamp = (new Date()).getTime();
-      tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', [eventType, windowId, tabId, timeStamp], debug.onEventLogged, debug.onError);
-    });
-  }
+	var timeStamp = (new Date()).getTime();
+	debug.db.transaction(function(tx){
+		console.log(eventType + " w: " + windowId + " t: " + tabId);
+		tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', [eventType, windowId, tabId, timeStamp], debug.onEventLogged, debug.onError);
+	});
 }
 
 // if we're viewing the log in another tab, we update it after logging an event.
@@ -77,7 +74,7 @@ debug.onTabAttached = function(tabId, info) {
 debug.onTabCreated = function(tab) {
   debug.logEvent('tab_created', tab.windowId, tab.id);
 }
-chrome.tabs.onCreated.addListener(debug.onTabCreated);
+// chrome.tabs.onCreated.addListener(debug.onTabCreated);
 
 debug.onTabDetached = function(tabId, info) {
   debug.logEvent('tab_detached', info.oldWindowId, tabId);
@@ -97,7 +94,7 @@ chrome.tabs.onRemoved.addListener(debug.onTabRemoved);
 debug.onTabSelectionChanged = function(tabId, info) {
   debug.logEvent('tab_selected', info.windowId, tabId);
 }
-// chrome.tabs.onSelectionChanged.addListener(debug.onTabSelectionChanged);
+chrome.tabs.onSelectionChanged.addListener(debug.onTabSelectionChanged);
 
 debug.onTabUpdated = function(tabId, info, tab) {
   debug.logEvent('tab_updated', tab.windowId, tabId);
@@ -107,7 +104,7 @@ debug.onTabUpdated = function(tabId, info, tab) {
 debug.onWindowCreated = function(window) {
   debug.logEvent('window_created', window.id, 0);
 }
-chrome.windows.onCreated.addListener(debug.onWindowCreated);
+// chrome.windows.onCreated.addListener(debug.onWindowCreated);
 
 debug.onWindowFocusChanged = function(windowId) {
   debug.logEvent('window_focused', windowId, 0);
