@@ -160,3 +160,7 @@ input:focus {
 #update {
   display: none;
 }
+
+.warning, #update.warning a {
+  color: red;
+}
