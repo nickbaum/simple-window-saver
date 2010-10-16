@@ -44,6 +44,10 @@ var windowIdToTimeout = new Object();
 // used to count how many times we show the update message
 var updateMsgCount = restoreFromLocalStorage("updateMsgCount", 0);
 
+// used to block window state updates when API is able to indicate 
+// window-closing intention on tab removal
+var isWindowClosing = false;
+
 /* INIT */
 
 // if the extension has been updated, show the update message 5 times 
@@ -324,22 +328,32 @@ function onTabMoved(tabId, info) {
 }
 chrome.tabs.onMoved.addListener(onTabMoved);
 
-function onTabRemoved(tabId) {
+function onTabRemoved(tabId, removeInfo) {
   var windowId = tabIdToSavedWindowId[tabId];
   delete tabIdToSavedWindowId[tabId];
-  // because closing a window also triggers tab removal events
-  // we delay updating the window to give the window a chance to close
-  onTabChangedWithTimeout(tabId, windowId);
-  windowIdToTimeout[windowId].count = getNumberOfPendingClosedTabs(windowId) + 1;
-  // TODO: can we handle the case when we close the last tab
+  if (removeInfo) {
+    // we are using an API that indicates whether window was closed on tab
+    // removal
+    isWindowClosing = removeInfo.isWindowClosing;
+    onTabChanged(tabId, windowId);
+  } else {
+    // we are NOT using an API that indicates whether window was closed on
+    // tab removal:
+    // because closing a window also triggers tab removal events
+    // we delay updating the window to give the window a chance to close
+    onTabChangedWithTimeout(tabId, windowId);
+    windowIdToTimeout[windowId].count = getNumberOfPendingClosedTabs(windowId) + 1;
+    // TODO: can we handle the case when we close the last tab
+  }
 }
 chrome.tabs.onRemoved.addListener(onTabRemoved);
 
 function onTabSelectionChanged(tabId, info) {
   var windowId = info.windowId;
   updateBadgeForTab({id: tabId, windowId: windowId});
-  // because closing a window also triggers tab selection events
-  // we delay updating the window if there is a tab close event pending
+  // because closing a window also triggers tab selection events for older
+  // API versions we delay updating the window if there is a tab close event
+  // pending
   if (windowIdToTimeout[windowId]) {
     onTabChangedWithTimeout(tabId, windowId);
   } else {
@@ -355,6 +369,8 @@ chrome.tabs.onUpdated.addListener(onTabUpdated);
 
 // updates a window in response to a tab event
 function onTabChanged(tabId, windowId) {
+  if (isWindowClosing)
+    return;
   clearTimeoutForWindowId(windowId);
   getPopulatedWindow(windowId, function(w) {
     // if the window is saved, we update it
@@ -435,6 +451,7 @@ function onWindowRemoved(windowId) {
     markWindowAsClosed(savedWindow);
   }
   clearTimeoutForWindowId(windowId);
+  isWindowClosing = false;
 }
 chrome.windows.onRemoved.addListener(onWindowRemoved);
 
