@@ -5,10 +5,10 @@
   backgroundPage = chrome.extension.getBackgroundPage();
 
   // flag whether to display timestamps (as opposed to epochs)
-  var useTimestamps = false;
+  var useTimestamps = true;
   
   // flag whether to display time differences
-  var useDiff = false;
+  var useDiff = true;
 
   // get all the log data from the debug database
   function updateLogView() {
@@ -77,10 +77,7 @@
 
   // toggle given parameter and update log view accordingly
   function toggleDisplayParam(param) {
-      if (param == "timeformat")
-          useTimestamps = (useTimestamps == true) ? false : true;
-      else if (param == "diff")
-          useDiff = (useDiff == true) ? false : true;
+      window[param] = !window[param];
       updateLogView();
   }
 </script>
@@ -89,7 +86,7 @@
 CSV Format: 'event_type, window_id, tab_id, time (ms since epoch/timestamp)[, diff (ms), diff (s)]'<br>
 <textarea cols="80" rows="40" id="logs">No events logged yet.</textarea><br>
 <a href="javascript:deleteAllLogs();">delete all log data</a> |
-<a href="javascript:toggleDisplayParam('timeformat');">toggle time format</a> |
-<a href="javascript:toggleDisplayParam('diff');">toggle diff</a> |
+<a href="javascript:toggleDisplayParam('useTimestamps');">toggle time format</a> |
+<a href="javascript:toggleDisplayParam('useDiff');">toggle diff</a>
 </body>
 </html>
