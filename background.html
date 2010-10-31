@@ -44,9 +44,9 @@ var windowIdToTimeout = new Object();
 // used to count how many times we show the update message
 var updateMsgCount = restoreFromLocalStorage("updateMsgCount", 0);
 
-// used to block window state updates when API is able to indicate 
+// object that stores per-window flags as to whether API indicated
 // window-closing intention on tab removal
-var isWindowClosing = false;
+var isWindowClosing = new Object();
 
 /* INIT */
 
@@ -334,7 +334,7 @@ function onTabRemoved(tabId, removeInfo) {
   if (removeInfo) {
     // we are using an API that indicates whether window was closed on tab
     // removal
-    isWindowClosing = removeInfo.isWindowClosing;
+    isWindowClosing[windowId] = removeInfo.isWindowClosing;
     onTabChanged(tabId, windowId);
   } else {
     // we are NOT using an API that indicates whether window was closed on
@@ -369,7 +369,7 @@ chrome.tabs.onUpdated.addListener(onTabUpdated);
 
 // updates a window in response to a tab event
 function onTabChanged(tabId, windowId) {
-  if (isWindowClosing)
+  if (isWindowClosing[windowId])
     return;
   clearTimeoutForWindowId(windowId);
   getPopulatedWindow(windowId, function(w) {
@@ -451,7 +451,7 @@ function onWindowRemoved(windowId) {
     markWindowAsClosed(savedWindow);
   }
   clearTimeoutForWindowId(windowId);
-  isWindowClosing = false;
+  delete isWindowClosing[windowId];
 }
 chrome.windows.onRemoved.addListener(onWindowRemoved);
 
