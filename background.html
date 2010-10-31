@@ -167,7 +167,6 @@ function markWindowAsOpen(w) {
 function markWindowAsClosed(w) {
   delete windowIdToName[w.id];
   closedWindows[w.name] = w;
-  updateBadgeForWindow(w.id);
   delete w.id;
 }
 
@@ -230,6 +229,7 @@ function deleteSavedWindow(name) {
       delete tabIdToSavedWindowId[savedWindow.tabs[i].id];
     }
   }
+  updateBadgeForWindow(savedWindow.id);
   
   delete closedWindows[savedWindow.name];
   delete localStorage[name];
