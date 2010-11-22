@@ -167,7 +167,6 @@ function markWindowAsOpen(w) {
 function markWindowAsClosed(w) {
   delete windowIdToName[w.id];
   closedWindows[w.name] = w;
-  updateBadgeForWindow(w.id);
   delete w.id;
 }
 
@@ -224,8 +223,10 @@ function openWindow(name) {
 function deleteSavedWindow(name) {
   var savedWindow = savedWindows[name];
   
-  if (savedWindow.id) {
+  var id = savedWindow.id;
+  if (id) {
     markWindowAsClosed(savedWindow);
+    updateBadgeForWindow(id);
     for (var i in savedWindow.tabs) {
       delete tabIdToSavedWindowId[savedWindow.tabs[i].id];
     }
