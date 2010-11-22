@@ -384,7 +384,6 @@ function onTabChanged(tabId, windowId) {
       for (i in closedWindows) {
         var savedWindow = closedWindows[i];
         if (windowsAreEqual(w, savedWindow)) {
-          console.log("Window " + windowId + " was identified as " + savedWindow.displayName);
           var name = savedWindow.name;
           var displayName = savedWindow.displayName;
           storeWindow(w, name, displayName);

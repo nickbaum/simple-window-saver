@@ -35,7 +35,6 @@ debug.db.transaction(function(tx) {
 debug.logEvent = function(eventType, windowId, tabId) {
 	var timeStamp = (new Date()).getTime();
 	debug.db.transaction(function(tx){
-		console.log(eventType + " w: " + windowId + " t: " + tabId);
 		tx.executeSql('INSERT INTO event_log(event_type, window_id, tab_id, time_stamp) VALUES (?,?,?,?)', [eventType, windowId, tabId, timeStamp], debug.onEventLogged, debug.onError);
 	});
 }
