@@ -223,13 +223,14 @@ function openWindow(name) {
 function deleteSavedWindow(name) {
   var savedWindow = savedWindows[name];
   
-  if (savedWindow.id) {
+  var id = savedWindow.id;
+  if (id) {
     markWindowAsClosed(savedWindow);
+    updateBadgeForWindow(id);
     for (var i in savedWindow.tabs) {
       delete tabIdToSavedWindowId[savedWindow.tabs[i].id];
     }
   }
-  updateBadgeForWindow(savedWindow.id);
   
   delete closedWindows[savedWindow.name];
   delete localStorage[name];
