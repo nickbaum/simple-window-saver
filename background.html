@@ -171,6 +171,7 @@ function markWindowAsClosed(w) {
 }
 
 // restore a previously saved window
+// TODO: the code to reuse a window is probably not worth the additional complexity
 function openWindow(name) {
   var savedWindow = savedWindows[name];
 
@@ -200,18 +201,25 @@ function openWindow(name) {
         for (var i in savedWindow.tabs) {
           if (i > 0) {
             // TODO: there could be a race here, if the window gets saved
-            chrome.tabs.create({url:savedWindow.tabs[i].url, windowId: windowId});
+            // TODO: consolidate tabs.update and tabs.create functions
+            chrome.tabs.create({url: savedWindow.tabs[i].url,
+                                pinned: savedWindow.tabs[i].pinned,
+                                windowId: windowId});
           }
         }
       }
 
       // If we're re-using the window, we open the tabs directly.
       if (windowId) {
-        chrome.tabs.update(tab.id, {url:savedWindow.tabs[0].url});
+        chrome.tabs.update(tab.id, {url: savedWindow.tabs[0].url,
+                                    pinned: savedWindow.tabs[0].pinned});
         openWindowHelper(savedWindow, windowId);
       } else {
         // Otherwise we create a window and open the tabs in it.
         chrome.windows.create({url:savedWindow.tabs[0].url}, function(w){
+          if (savedWindow.tabs[0].pinned) {
+            chrome.tabs.update(w.tabs[0].id, {pinned: true})
+          }
           openWindowHelper(savedWindow, w.id);
         });
       }
