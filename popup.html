@@ -80,7 +80,7 @@ function appendWindowToList(w, currentWindowName) {
 
   // FEATURE: add "add to this set" to add current tabs to existing one
 
-  savedWindowListEl.appendChild(li);
+  savedWindowListEl.insertBefore(li, savedWindowListEl.firstChild);
 }
 
 // save window in background page and update display
@@ -188,6 +188,10 @@ function getDisplayName(w) {
 <body onload="init();">
 
 <div>
+  <form id="form" onsubmit="return saveWindow();">
+    Save as: <input type="text" id="nameInput" />
+  </form>
+  <div id="incognitoMsg">Note: you can't save incognito windows.</div>
   <ul id="savedWindowList">
      <li id="template" onclick="openSavedWindow(this);">
        <span class="text">Name</span><!--
@@ -199,10 +203,6 @@ function getDisplayName(w) {
       </span>
     </li>
   </ul>
-  <form id="form" onsubmit="return saveWindow();">
-    Save as: <input type="text" id="nameInput" />
-  </form>
-  <div id="incognitoMsg">Note: you can't save incognito windows.</div>
   <div id="footer">
     <span id="update">
       <img src="new.png" /> Click on an open window to focus it.<br/>
