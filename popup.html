@@ -9,7 +9,7 @@
 // FEATURE: support drag & drop merging
 
 var backgroundPage = chrome.extension.getBackgroundPage();
-var savedWindowListEl, formEl, nameInput, template, focusUrl;
+var savedWindowListEl, formEl, nameInput, template;
 var undo = new Object();
 
 function init() {
@@ -22,7 +22,6 @@ function init() {
   formEl = document.getElementById("form");
   nameInput = document.getElementById("nameInput");
   template = document.getElementById("template");
-  focusUrl = chrome.extension.getURL("focus.html");
 
   // populate list of windows
   chrome.windows.getCurrent(function(currentWindow) {
@@ -107,8 +106,7 @@ function openSavedWindow(element) {
 // focus an open window
 // called when the user clicks the name of a saved window that is open.
 function focusOpenWindow(windowId) {
-  // TODO: for some reason, this does not work on Snow Leopard
-  chrome.tabs.create({url: focusUrl, windowId: windowId, selected: false});
+  chrome.windows.update(windowId, {focused: true});
 }
 
 // delete a saved window
