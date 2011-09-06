@@ -37,10 +37,6 @@ var closedWindows = new Object();
 // so we need to keep track of that mapping.
 var tabIdToSavedWindowId = new Object();
 
-// timeouts used to delay updating the state of a window
-// used to process closed windows
-var windowIdToTimeout = new Object();
-
 // used to count how many times we show the update message
 var updateMsgCount = restoreFromLocalStorage("updateMsgCount", 0);
 
@@ -50,7 +46,7 @@ var isWindowClosing = new Object();
 
 /* INIT */
 
-// if the extension has been updated, show the update message 5 times 
+// if the extension has been updated, show the update message 5 times
 if (parseFloat(localStorage.version) < 1.1) {
   updateMsgCount = 5;
   localStorage.version = "1.1";
@@ -125,7 +121,7 @@ function windowsAreEqual(currentWindow, savedWindow) {
 // save a window
 // returns the saved window object
 function saveWindow(w, displayName) {
-  var displayName = (displayName == "") ? DEFAULT_NAME : displayName; 
+  var displayName = (displayName == "") ? DEFAULT_NAME : displayName;
   // handle duplicate names
   var name = displayName;
   var n = 0;
@@ -133,17 +129,17 @@ function saveWindow(w, displayName) {
     name = displayName + n;
     n++;
   }
-  
+
   // add window to indexes
   savedWindowNames.push(name);
   localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
-  
+
   storeWindow(w, name, displayName);
-  
+
   if (w.id) {
     markWindowAsOpen(w);
   }
-  
+
   return w;
 }
 
@@ -152,10 +148,10 @@ function saveWindow(w, displayName) {
 function storeWindow(w, name, displayName) {
   w.name = name;
   w.displayName = displayName;
-  
+
   savedWindows[name] = w;
   localStorage[name] = JSON.stringify(w);
-  
+
   return w;
 }
 
@@ -194,7 +190,7 @@ function openWindow(name) {
           chrome.tabs.remove(tab.id);
         }
       }
-      
+
       // this is a little helper function
       // we need it because if we don't have a window yet
       // we'll need to do this work asynchronously
@@ -208,7 +204,7 @@ function openWindow(name) {
           }
         }
       }
-      
+
       // If we're re-using the window, we open the tabs directly.
       if (windowId) {
         chrome.tabs.update(tab.id, {url:savedWindow.tabs[0].url});
@@ -226,7 +222,7 @@ function openWindow(name) {
 // removed a saved window
 function deleteSavedWindow(name) {
   var savedWindow = savedWindows[name];
-  
+
   var id = savedWindow.id;
   if (id) {
     markWindowAsClosed(savedWindow);
@@ -235,7 +231,7 @@ function deleteSavedWindow(name) {
       delete tabIdToSavedWindowId[savedWindow.tabs[i].id];
     }
   }
-  
+
   delete closedWindows[savedWindow.name];
   delete localStorage[name];
   delete savedWindows[name];
@@ -331,34 +327,15 @@ chrome.tabs.onMoved.addListener(onTabMoved);
 function onTabRemoved(tabId, removeInfo) {
   var windowId = tabIdToSavedWindowId[tabId];
   delete tabIdToSavedWindowId[tabId];
-  if (removeInfo) {
-    // we are using an API that indicates whether window was closed on tab
-    // removal
-    isWindowClosing[windowId] = removeInfo.isWindowClosing;
-    onTabChanged(tabId, windowId);
-  } else {
-    // we are NOT using an API that indicates whether window was closed on
-    // tab removal:
-    // because closing a window also triggers tab removal events
-    // we delay updating the window to give the window a chance to close
-    onTabChangedWithTimeout(tabId, windowId);
-    windowIdToTimeout[windowId].count = getNumberOfPendingClosedTabs(windowId) + 1;
-    // TODO: can we handle the case when we close the last tab
-  }
+  isWindowClosing[windowId] = removeInfo.isWindowClosing;
+  onTabChanged(tabId, windowId);
 }
 chrome.tabs.onRemoved.addListener(onTabRemoved);
 
 function onTabSelectionChanged(tabId, info) {
   var windowId = info.windowId;
   updateBadgeForTab({id: tabId, windowId: windowId});
-  // because closing a window also triggers tab selection events for older
-  // API versions we delay updating the window if there is a tab close event
-  // pending
-  if (windowIdToTimeout[windowId]) {
-    onTabChangedWithTimeout(tabId, windowId);
-  } else {
-    onTabChanged(tabId, windowId);
-  }
+  onTabChanged(tabId, windowId);
 }
 chrome.tabs.onSelectionChanged.addListener(onTabSelectionChanged);
 
@@ -371,7 +348,6 @@ chrome.tabs.onUpdated.addListener(onTabUpdated);
 function onTabChanged(tabId, windowId) {
   if (isWindowClosing[windowId])
     return;
-  clearTimeoutForWindowId(windowId);
   getPopulatedWindow(windowId, function(w) {
     // if the window is saved, we update it
     if (windowIdToName[windowId]) {
@@ -411,36 +387,6 @@ function getPopulatedWindow(windowId, callback) {
   });
 }
 
-// sets a timeout to update the state of a window after 5 seconds
-// if such a timer already exists, resets it
-function onTabChangedWithTimeout(tabId, windowId) {
-  var count = getNumberOfPendingClosedTabs(windowId);
-  clearTimeoutForWindowId(windowId);
-  var timeout = setTimeout(function(){
-    onTabChanged(tabId, windowId);
-  }, 5000);
-  windowIdToTimeout[windowId] = {count: count, timeout: timeout};
-}
-
-// cancels the timer on a window
-function clearTimeoutForWindowId(windowId) {
-  var timeoutData = windowIdToTimeout[windowId];
-  if (timeoutData) {
-    clearTimeout(timeoutData.timeout);
-    delete windowIdToTimeout[windowId];
-  }
-}
-
-// returns the number of onTabClose events that are pending for this window
-function getNumberOfPendingClosedTabs(windowId) {
-  var timeoutData = windowIdToTimeout[windowId];
-  if (timeoutData) {
-    return timeoutData.count;
-  } else {
-    return 0;
-  }
-}
-
 /* WINDOW EVENTS */
 
 function onWindowRemoved(windowId) {
@@ -449,7 +395,6 @@ function onWindowRemoved(windowId) {
     var savedWindow = savedWindows[windowName];
     markWindowAsClosed(savedWindow);
   }
-  clearTimeoutForWindowId(windowId);
   delete isWindowClosing[windowId];
 }
 chrome.windows.onRemoved.addListener(onWindowRemoved);
