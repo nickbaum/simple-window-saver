@@ -171,60 +171,41 @@ function markWindowAsClosed(w) {
 }
 
 // restore a previously saved window
-// TODO: the code to reuse a window is probably not worth the additional complexity
 function openWindow(name) {
-  var savedWindow = savedWindows[name];
-
   chrome.tabs.getSelected(null, function(tab){
-    chrome.tabs.getAllInWindow(tab.windowId, function(tabs) {
-      var windowId, callback;
-      if (tab.url == "chrome://newtab/") {
-        // if the newtab was the only tab in the window, re-use the window
-        if (tabs.length == 1) {
-          // Since we're paranoid, we also check that the window isn't saved
-          // just in case you've saved a single newtab (why? don't ask me).
-          if (!windowIdToName[tab.windowId]) {
-            windowId = tab.windowId;
-          }
-        } else {
-          // if the newtab wasn't the only one, we close it
-          chrome.tabs.remove(tab.id);
-        }
-      }
+    // if the window was opened from a new tab, close the new tab
+    if (tab.url == "chrome://newtab/") {
+      chrome.tabs.remove(tab.id);
+    }
 
-      // this is a little helper function
-      // we need it because if we don't have a window yet
-      // we'll need to do this work asynchronously
-      var openWindowHelper = function openWindowHelper(savedWindow, windowId) {
-        savedWindow.id = windowId;
-        markWindowAsOpen(savedWindow);
-        for (var i in savedWindow.tabs) {
-          if (i > 0) {
-            // TODO: there could be a race here, if the window gets saved
-            // TODO: consolidate tabs.update and tabs.create functions
-            chrome.tabs.create({url: savedWindow.tabs[i].url,
-                                pinned: savedWindow.tabs[i].pinned,
-                                windowId: windowId});
-          }
-        }
-      }
+    // compile the raw list of urls
+    var savedWindow = savedWindows[name];
+    var urls = [];
+    for (i in savedWindow.tabs) {
+      urls[i] = savedWindow.tabs[i].url;
+    }
 
-      // If we're re-using the window, we open the tabs directly.
-      if (windowId) {
-        chrome.tabs.update(tab.id, {url: savedWindow.tabs[0].url,
-                                    pinned: savedWindow.tabs[0].pinned});
-        openWindowHelper(savedWindow, windowId);
-      } else {
-        // Otherwise we create a window and open the tabs in it.
-        chrome.windows.create({url:savedWindow.tabs[0].url}, function(w){
-          if (savedWindow.tabs[0].pinned) {
-            chrome.tabs.update(w.tabs[0].id, {pinned: true})
-          }
-          openWindowHelper(savedWindow, w.id);
-        });
-      }
-    });
+    // create a window and open the tabs in it.
+    var createData = {url: urls};
+    var callback = function (w) { onWindowOpened(savedWindow, w); };
+    chrome.windows.create(createData, callback);
   });
+}
+
+
+// this is a little helper function
+// we need it because if we don't have a window yet
+// we'll need to do this work asynchronously
+function onWindowOpened(savedWindow, w) {
+  savedWindow.id = w.id;
+  markWindowAsOpen(savedWindow);
+
+  // pinned tabs
+  for (var i in savedWindow.tabs) {
+    if (savedWindow.tabs[i].pinned) {
+      chrome.tabs.update(w.tabs[i].id, {pinned: true});
+    }
+  }
 }
 
 // removed a saved window
