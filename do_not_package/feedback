@@ -11,7 +11,6 @@ right click in popup should allow to inspect
 css should not be cached while in developer mode
 support debug mode (example: CSS buster)
 support unicode or html characters in browserAction badges
-always have to hit inspect popup twice
 better handling of mistakes in manifest, moving local dev folder
 badge should have a per-window option
 window.create should take same parameters as tab.create (in particular, pinned does not work)
