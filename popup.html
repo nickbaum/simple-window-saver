@@ -9,8 +9,9 @@
 // FEATURE: support drag & drop merging
 
 var backgroundPage = chrome.extension.getBackgroundPage();
-var savedWindowListEl, formEl, nameInput, template, focusUrl;
+var savedWindowListEl, formEl, nameInput, template;
 var undo = new Object();
+
 
 function init() {
   // CSS buster - only used when developing locally
@@ -22,8 +23,7 @@ function init() {
   formEl = document.getElementById("form");
   nameInput = document.getElementById("nameInput");
   template = document.getElementById("template");
-  focusUrl = chrome.extension.getURL("focus.html");
-  
+
   // populate list of windows
   chrome.windows.getCurrent(function(currentWindow) {
     var currentWindowName = backgroundPage.windowIdToName[currentWindow.id];
@@ -31,8 +31,8 @@ function init() {
     var savedWindowNames = backgroundPage.savedWindowNames;
     for (var i in savedWindowNames) {
       var name = savedWindowNames[i];
-      var w = savedWindows[name];
-      appendWindowToList(w, currentWindowName);
+      var savedWindow = savedWindows[name];
+      appendWindowToList(savedWindow, currentWindowName);
     }
     if (!currentWindowName) {
       if (currentWindow.incognito) {
@@ -45,7 +45,7 @@ function init() {
       }
     }
   });
-  
+
   // decrement update message counter
   var count = backgroundPage.updateMsgCount;
   if (count > 0) {
@@ -55,46 +55,50 @@ function init() {
   } else {
     backgroundPage.updateBadgeForAllWindows();
   }
-  
+
   // this does nothing in the packaged extension
   backgroundPage.debug.addDebugUI(document);
 }
 
+
 // add window to HTML list of windows
-function appendWindowToList(w, currentWindowName) {
+function appendWindowToList(savedWindow, currentWindowName) {
   var li = template.cloneNode(true);
   li.removeAttribute("id");
-  li.setAttribute("data-name", w.name);
-  
-  var count = w.tabs.length - backgroundPage.getNumberOfPendingClosedTabs(w.id);
-  var text = w.displayName + " (" + count + ")";
-  if (w.name == currentWindowName) {
+  li.setAttribute("data-name", savedWindow.name);
+
+  var count = savedWindow.tabs.length;
+  var text = savedWindow.displayName + " (" + count + ")";
+  if (savedWindow.name == currentWindowName) {
     li.className = "current";
     li.onclick = null;
     text = "This is <b>" + text + "<\/b>.";
-  } else if (w.id) {
+  } else if (savedWindow.id) {
     li.className = "open";
-    li.onclick = function() { focusOpenWindow(w.id); };
+    li.onclick = function() { focusOpenWindow(savedWindow.id); };
   }
   setText(li, text);
-  
+
   // FEATURE: add "add to this set" to add current tabs to existing one
-  
-  savedWindowListEl.appendChild(li);
+
+  savedWindowListEl.insertBefore(li, savedWindowListEl.firstChild);
 }
+
 
 // save window in background page and update display
 function saveWindow() {
-  chrome.windows.getCurrent(function(w) {
-    chrome.tabs.getAllInWindow(null, function(tabs) {  
-      w.tabs = tabs;
-      w = backgroundPage.saveWindow(w, nameInput.value);
+  chrome.windows.getCurrent(function(currentWindow) {
+    chrome.tabs.getAllInWindow(null, function(tabs) {
+      currentWindow.tabs = tabs;
+      savedWindow = backgroundPage.saveWindow(currentWindow, nameInput.value);
       formEl.style.display = "none";
-      appendWindowToList(w, nameInput.value);
+      appendWindowToList(savedWindow, nameInput.value);
+      backgroundPage._gaq.push(['_trackEvent', 'popup', 'saveWindow', 'Value is tab count.', savedWindow.length]);
     });
   });
   return false;
 }
+
 
 // open a saved window
 // called when the user clicks the name of a saved window that is closed.
@@ -102,83 +106,97 @@ function openSavedWindow(element) {
   // TODO: refactor to just use name as argument
   name = element.getAttribute("data-name");
   backgroundPage.openWindow(name);
+
+  var savedWindow = backgroundPage.savedWindows[name];
+  backgroundPage._gaq.push(['_trackEvent', 'popup', 'openWindow', 'Value is tab count.', savedWindow.length]);
 }
+
 
 // focus an open window
 // called when the user clicks the name of a saved window that is open.
 function focusOpenWindow(windowId) {
-  // TODO: for some reason, this does not work on Snow Leopard
-  chrome.tabs.create({url: focusUrl, windowId: windowId, selected: false});
+  chrome.windows.update(windowId, {focused: true});
+  backgroundPage._gaq.push(['_trackEvent', 'popup', 'focusWindow']);
 }
+
 
 // delete a saved window
 // called when the user presses the delete button
-function deleteSavedWindow(e, element) {
+function deleteSavedWindow(event, element) {
+  event.stopPropagation();
+
   // get data
   var li = element.parentNode;
   var name = li.getAttribute("data-name");
-  var w = backgroundPage.savedWindows[name]
+  var savedWindow = backgroundPage.savedWindows[name]
   var text = li.childNodes[1].innerHTML;
-  
+
   // save information for undo
   undo[name] = {
     className: li.className,
     text: text,
-    w: w,
-    id: w.id
+    savedWindow: savedWindow,
+    id: savedWindow.id
   };
   // we save this separately since deleteSavedWindow nixes it.
-  if (w.id) {
-    undo[name].id = w.id
+  if (savedWindow.id) {
+    undo[name].id = savedWindow.id
   }
 
   // actually perform the deletion
   backgroundPage.deleteSavedWindow(name);
-  
+
   // update display
   li.className = "deleted";
-  setText(li, "<b>" + getDisplayName(w) + "<\/b> was deleted.");
+  setText(li, "<b>" + getDisplayName(savedWindow) + "<\/b> was deleted.");
   // TODO: show the form if current window
-  
-  e.stopPropagation();
+
+  backgroundPage._gaq.push(['_trackEvent', 'popup', 'deleteWindow', 'Value is tab count.', savedWindow.length]);
 }
+
 
 // undo a deletion
 // called when the user presse the undo button
-function undoDeleteSavedWindow(e, element) {
+function undoDeleteSavedWindow(event, element) {
+  event.stopPropagation();
+
   // get data
   var li = element.parentNode;
   var name = li.getAttribute("data-name");
   var undoInfo = undo[name];
+  var savedWindow = undoInfo.savedWindow;
 
   // restore the window id
   if (undoInfo.id) {
-    undoInfo.w.id = undoInfo.id;
+    savedWindow.id = undoInfo.id;
   }
-  
+
   // resave the window
-  backgroundPage.saveWindow(undoInfo.w, name);
-  
+  backgroundPage.saveWindow(savedWindow, name);
+
   // update display
   li.className = undoInfo.className;
   setText(li, undoInfo.text);
-  
+
   // clean up
   delete undo[name];
   // TODO: hide the form if current window
-  
-  e.stopPropagation();
+
+  backgroundPage._gaq.push(['_trackEvent', 'popup', 'undoDeleteWindow', 'Value is tab count.', savedWindow.length]);
 }
+
 
 // given a list element, sets the text
 function setText(element, text) {
   element.childNodes[1].innerHTML = text;
 }
 
+
 // formats the name for display
-function getDisplayName(w) {
-  return w.displayName + " (" + w.tabs.length + ")";
+function getDisplayName(savedWindow) {
+  return savedWindow.displayName + " (" + savedWindow.tabs.length + ")";
 }
+
 
 </script>
 
@@ -188,6 +206,10 @@ function getDisplayName(w) {
 <body onload="init();">
 
 <div>
+  <form id="form" onsubmit="return saveWindow();">
+    Save as: <input type="text" id="nameInput" />
+  </form>
+  <div id="incognitoMsg">Note: you can't save incognito windows.</div>
   <ul id="savedWindowList">
      <li id="template" onclick="openSavedWindow(this);">
        <span class="text">Name</span><!--
@@ -199,16 +221,17 @@ function getDisplayName(w) {
       </span>
     </li>
   </ul>
-  <form id="form" onsubmit="return saveWindow();">
-    Save as: <input type="text" id="nameInput" />
-  </form>
-  <div id="incognitoMsg">Note: you can't save incognito windows.</div>  
   <div id="footer">
-    <span id="update">
-      <img src="new.png" /> Click on an open window to focus it.<br/>
-      If you like this extension, please <a href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc">rate it</a>. Thanks!<br/>
-    </span>
-    Bugs or suggestions? <a href="" onclick="chrome.tabs.create({url:'mailto:simpleWindowSaver@nickbaum.com'});">Contact me.</a>
+    <div id="update">
+      <img src="new.png" />
+      <ul>
+        <li>Fixed click-to-focus</li>
+        <li>Reversed order of saved windows for easier access to recently saved windows</li>
+        <li>Collecting anonymous stats via Google Analytics (<a href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc">details here</a>)</li>
+      </ul>
+      If you like this extension, please <a href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc">rate it</a>. Thanks!
+    </div>
+    Bugs or suggestions? <a href="" onclick="chrome.tabs.create({url:'mailto:simpleWindowSaver@nickbaum.com'});">Contact me</a>
   </div>
 </div>
 

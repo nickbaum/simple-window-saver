@@ -12,7 +12,6 @@ body {
 * {
   margin: 0;
   padding: 0;
-  white-space: nowrap;
 }
 
 li, #form, #incognitoMsg, #footer {
@@ -25,49 +24,50 @@ li, #form, #incognitoMsg, #footer {
 
 /* LIST */
 
-li {
+#savedWindowList li {
   list-style: none;
   border-radius: 10px;
   margin: 10px 5px;
   color: blue;
+  white-space: nowrap;
 }
 
-li:hover {
+#savedWindowList li:hover {
   background-color: #eee;
 }
 
-li:hover > .delete {
+#savedWindowList li:hover > .delete {
   visibility: visible;
 }
 
-.text {
+#savedWindowList li .text {
   display: inline;
 }
 
-.text:hover {
+#savedWindowList li .text:hover {
   cursor: pointer;
 }
 
 /* OPEN */
 
-.open {
+#savedWindowList li.open {
   color: black;
 }
 
 /* CURRENT */
 
-.current, .current:hover {
+#savedWindowList li.current, #savedWindowList li.current:hover {
   background-color: #ff9;
   color: black;
 }
 
-.current > .text:hover {
+#savedWindowList li.current > .text:hover {
   cursor: default;
 }
 
 /* DELETE */
 
-.delete {
+#savedWindowList li .delete {
   margin-left: 20px;
   float: right;
   display: inline;
@@ -84,38 +84,38 @@ li:hover > .delete {
   top: 1px;
 }
 
-.delete:hover {
+#savedWindowList li .delete:hover {
   cursor: pointer;
   background-color: #f66;
 }
 
 /* DELETED */
 
-.deleted, .deleted:hover {
+#savedWindowList li.deleted, #savedWindowList li.deleted:hover {
   color: black;
   background-color: #fcc;
 }
 
-.deleted > .text:hover {
+#savedWindowList li.deleted > .text:hover {
   cursor: default;
 }
 
-.deleted > .delete {
+#savedWindowList li.deleted > .delete {
   display: none;
 }
 
-.deleted > .undo {
+#savedWindowList li.deleted > .undo {
   display: inline;
 }
 
-.undo {
+#savedWindowList li .undo {
   display: none;
   color: blue;
   float: right;
   margin-left: 20px;
 }
 
-.undo:hover  {
+#savedWindowList li .undo:hover  {
   cursor: pointer;
 }
 
@@ -150,7 +150,7 @@ input:focus {
 #footer {
   font-size: 80%;
   color: #999;
-  text-align: right;
+  float: right;
 }
 
 #footer a {
@@ -159,4 +159,5 @@ input:focus {
 
 #update {
   display: none;
+  list-style: disc inside;
 }
