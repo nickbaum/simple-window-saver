@@ -12,6 +12,7 @@ body {
 * {
   margin: 0;
   padding: 0;
+  white-space: nowrap;
 }
 
 li, #form, #incognitoMsg, #footer {
@@ -24,50 +25,49 @@ li, #form, #incognitoMsg, #footer {
 
 /* LIST */
 
-#savedWindowList li {
+li {
   list-style: none;
   border-radius: 10px;
   margin: 10px 5px;
   color: blue;
-  white-space: nowrap;
 }
 
-#savedWindowList li:hover {
+li:hover {
   background-color: #eee;
 }
 
-#savedWindowList li:hover > .delete {
+li:hover > .delete {
   visibility: visible;
 }
 
-#savedWindowList li .text {
+.text {
   display: inline;
 }
 
-#savedWindowList li .text:hover {
+.text:hover {
   cursor: pointer;
 }
 
 /* OPEN */
 
-#savedWindowList li.open {
+.open {
   color: black;
 }
 
 /* CURRENT */
 
-#savedWindowList li.current, #savedWindowList li.current:hover {
+.current, .current:hover {
   background-color: #ff9;
   color: black;
 }
 
-#savedWindowList li.current > .text:hover {
+.current > .text:hover {
   cursor: default;
 }
 
 /* DELETE */
 
-#savedWindowList li .delete {
+.delete {
   margin-left: 20px;
   float: right;
   display: inline;
@@ -84,38 +84,38 @@ li, #form, #incognitoMsg, #footer {
   top: 1px;
 }
 
-#savedWindowList li .delete:hover {
+.delete:hover {
   cursor: pointer;
   background-color: #f66;
 }
 
 /* DELETED */
 
-#savedWindowList li.deleted, #savedWindowList li.deleted:hover {
+.deleted, .deleted:hover {
   color: black;
   background-color: #fcc;
 }
 
-#savedWindowList li.deleted > .text:hover {
+.deleted > .text:hover {
   cursor: default;
 }
 
-#savedWindowList li.deleted > .delete {
+.deleted > .delete {
   display: none;
 }
 
-#savedWindowList li.deleted > .undo {
+.deleted > .undo {
   display: inline;
 }
 
-#savedWindowList li .undo {
+.undo {
   display: none;
   color: blue;
   float: right;
   margin-left: 20px;
 }
 
-#savedWindowList li .undo:hover  {
+.undo:hover  {
   cursor: pointer;
 }
 
@@ -150,7 +150,7 @@ input:focus {
 #footer {
   font-size: 80%;
   color: #999;
-  float: right;
+  text-align: right;
 }
 
 #footer a {
@@ -159,5 +159,4 @@ input:focus {
 
 #update {
   display: none;
-  list-style: disc inside;
 }
