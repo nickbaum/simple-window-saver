@@ -2,6 +2,7 @@
 // Because chrome doesn't support per-window badges, we maintain it per-tab
 // and update it on both window and tab selection changes
 
+
 // used to count how many times we show the update message
 var updateMsgCount = restoreFromLocalStorage("updateMsgCount", 0);
 

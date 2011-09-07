@@ -93,6 +93,7 @@ function saveWindow() {
       savedWindow = backgroundPage.saveWindow(currentWindow, nameInput.value);
       formEl.style.display = "none";
       appendWindowToList(savedWindow, nameInput.value);
+      _gaq.push(['_trackEvent', 'popup', 'saveWindow', 'Value is tab count.', savedWindow.length]);
     });
   });
   return false;
@@ -105,6 +106,9 @@ function openSavedWindow(element) {
   // TODO: refactor to just use name as argument
   name = element.getAttribute("data-name");
   backgroundPage.openWindow(name);
+
+  var savedWindow = backgroundPage.savedWindows[name];
+  _gaq.push(['_trackEvent', 'popup', 'openWindow', 'Value is tab count.', savedWindow.length]);
 }
 
 
@@ -112,6 +116,7 @@ function openSavedWindow(element) {
 // called when the user clicks the name of a saved window that is open.
 function focusOpenWindow(windowId) {
   chrome.windows.update(windowId, {focused: true});
+  _gaq.push(['_trackEvent', 'popup', 'focusWindow']);
 }
 
 
@@ -145,6 +150,8 @@ function deleteSavedWindow(event, element) {
   li.className = "deleted";
   setText(li, "<b>" + getDisplayName(savedWindow) + "<\/b> was deleted.");
   // TODO: show the form if current window
+
+  _gaq.push(['_trackEvent', 'popup', 'deleteWindow', 'Value is tab count.', savedWindow.length]);
 }
 
 
@@ -157,14 +164,15 @@ function undoDeleteSavedWindow(event, element) {
   var li = element.parentNode;
   var name = li.getAttribute("data-name");
   var undoInfo = undo[name];
+  var savedWindow = undoInfo.savedWindow;
 
   // restore the window id
   if (undoInfo.id) {
-    undoInfo.savedWindow.id = undoInfo.id;
+    savedWindow.id = undoInfo.id;
   }
 
   // resave the window
-  backgroundPage.saveWindow(undoInfo.savedWindow, name);
+  backgroundPage.saveWindow(savedWindow, name);
 
   // update display
   li.className = undoInfo.className;
@@ -173,6 +181,8 @@ function undoDeleteSavedWindow(event, element) {
   // clean up
   delete undo[name];
   // TODO: hide the form if current window
+
+  _gaq.push(['_trackEvent', 'popup', 'undoDeleteWindow', 'Value is tab count.', savedWindow.length]);
 }
 
 

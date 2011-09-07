@@ -1,3 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+
+<script>
+// helper function to restore from localStorage
+function restoreFromLocalStorage(key, defaultValue) {
+  if (localStorage[key]) {
+    return JSON.parse(localStorage[key]);
+  } else {
+    localStorage[key] = JSON.stringify(defaultValue);
+    return defaultValue;
+  }
+}
+</script>
 <script src="eventHandlers.js"></script>
 <script src="badge.js"></script>
 <script>
@@ -38,16 +54,12 @@ var closedWindows = new Object();
 // so we need to keep track of that mapping.
 var tabIdToSavedWindowId = new Object();
 
-// used to count how many times we show the update message
-var updateMsgCount = restoreFromLocalStorage("updateMsgCount", 0);
-
 // object that stores per-window flags as to whether API indicated
 // window-closing intention on tab removal
 var isWindowClosing = new Object();
 
 
 /* INIT */
-
 
 // populate savedWindows from local storage
 // as we go, try matching them to open windows
@@ -82,17 +94,6 @@ chrome.windows.getAll({populate:true}, function(browserWindows) {
     }
   }
 });
-
-
-// helper function to restore from localStorage
-function restoreFromLocalStorage(key, defaultValue) {
-  if (localStorage[key]) {
-    return JSON.parse(localStorage[key]);
-  } else {
-    localStorage[key] = JSON.stringify(defaultValue);
-    return defaultValue;
-  }
-}
 
 
 // compares a current window to a saved window
@@ -137,7 +138,7 @@ function saveWindow(browserWindow, displayName) {
 
   storeWindow(browserWindow, name, displayName);
   if (browserWindow.id) {
-    markWindowAsOpen(w);
+    markWindowAsOpen(browserWindow);
   }
 
   return browserWindow;
@@ -239,3 +240,22 @@ During development, this file loads debugging code.
 The packaging script replaces it with a file that does nothing.
 -->
 <script src="debug.js"></script>
+
+
+</head>
+<body>
+  <script type="text/javascript">
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-18459718-1']);
+    _gaq.push(['_setCustomVar', 1, 'windowCount', savedWindowNames.length, 1]);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+  </script>
+</body>
+</html>
+
