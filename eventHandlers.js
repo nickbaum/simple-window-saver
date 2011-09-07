@@ -58,22 +58,22 @@ chrome.tabs.onUpdated.addListener(onTabUpdated);
 function onTabChanged(tabId, windowId) {
   if (isWindowClosing[windowId])
     return;
-  getPopulatedWindow(windowId, function(w) {
+  getPopulatedWindow(windowId, function(browserWindow) {
     // if the window is saved, we update it
     if (windowIdToName[windowId]) {
       tabIdToSavedWindowId[tabId] = windowId;
       var name = windowIdToName[windowId];
       var displayName = savedWindows[name].displayName;
-      storeWindow(w, name, displayName);
+      storeWindow(browserWindow, name, displayName);
     } else {
       // otherwise we double check that it's not saved
       for (i in closedWindows) {
         var savedWindow = closedWindows[i];
-        if (windowsAreEqual(w, savedWindow)) {
+        if (windowsAreEqual(browserWindow, savedWindow)) {
           var name = savedWindow.name;
           var displayName = savedWindow.displayName;
-          storeWindow(w, name, displayName);
-          markWindowAsOpen(w);
+          storeWindow(browserWindow, name, displayName);
+          markWindowAsOpen(browserWindow);
         }
       }
     }
@@ -88,12 +88,12 @@ function onTabChanged(tabId, windowId) {
 // and tabs, and calls callback with the window as argument
 function getPopulatedWindow(windowId, callback) {
   if (!windowId) {return;}
-  chrome.windows.get(windowId, function(w) {
-    if (!w) {return;}
+  chrome.windows.get(windowId, function(browserWindow) {
+    if (!browserWindow) {return;}
     chrome.tabs.getAllInWindow(windowId, function(tabs) {
       if (!tabs) {return;}
-      w.tabs = tabs;
-      callback(w);
+      browserWindow.tabs = tabs;
+      callback(browserWindow);
     });
   });
 }

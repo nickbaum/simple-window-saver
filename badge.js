@@ -2,6 +2,19 @@
 // Because chrome doesn't support per-window badges, we maintain it per-tab
 // and update it on both window and tab selection changes
 
+// used to count how many times we show the update message
+var updateMsgCount = restoreFromLocalStorage("updateMsgCount", 0);
+
+
+// if the extension has been updated, show the update message 5 times
+if (parseFloat(localStorage.version) < 1.1) {
+  updateMsgCount = 5;
+  localStorage.version = "1.1";
+}
+if (updateMsgCount > 0) {
+  updateBadgeForAllWindows();
+}
+
 
 // updates the browserAction badge to show the window as saved
 function showSavedBadge(tabId) {

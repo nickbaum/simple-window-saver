@@ -12,6 +12,7 @@ var backgroundPage = chrome.extension.getBackgroundPage();
 var savedWindowListEl, formEl, nameInput, template;
 var undo = new Object();
 
+
 function init() {
   // CSS buster - only used when developing locally
   style = document.getElementById("style");
@@ -30,8 +31,8 @@ function init() {
     var savedWindowNames = backgroundPage.savedWindowNames;
     for (var i in savedWindowNames) {
       var name = savedWindowNames[i];
-      var w = savedWindows[name];
-      appendWindowToList(w, currentWindowName);
+      var savedWindow = savedWindows[name];
+      appendWindowToList(savedWindow, currentWindowName);
     }
     if (!currentWindowName) {
       if (currentWindow.incognito) {
@@ -59,21 +60,22 @@ function init() {
   backgroundPage.debug.addDebugUI(document);
 }
 
+
 // add window to HTML list of windows
-function appendWindowToList(w, currentWindowName) {
+function appendWindowToList(savedWindow, currentWindowName) {
   var li = template.cloneNode(true);
   li.removeAttribute("id");
-  li.setAttribute("data-name", w.name);
+  li.setAttribute("data-name", savedWindow.name);
 
-  var count = w.tabs.length;
-  var text = w.displayName + " (" + count + ")";
-  if (w.name == currentWindowName) {
+  var count = savedWindow.tabs.length;
+  var text = savedWindow.displayName + " (" + count + ")";
+  if (savedWindow.name == currentWindowName) {
     li.className = "current";
     li.onclick = null;
     text = "This is <b>" + text + "<\/b>.";
-  } else if (w.id) {
+  } else if (savedWindow.id) {
     li.className = "open";
-    li.onclick = function() { focusOpenWindow(w.id); };
+    li.onclick = function() { focusOpenWindow(savedWindow.id); };
   }
   setText(li, text);
 
@@ -82,18 +84,20 @@ function appendWindowToList(w, currentWindowName) {
   savedWindowListEl.insertBefore(li, savedWindowListEl.firstChild);
 }
 
+
 // save window in background page and update display
 function saveWindow() {
-  chrome.windows.getCurrent(function(w) {
+  chrome.windows.getCurrent(function(currentWindow) {
     chrome.tabs.getAllInWindow(null, function(tabs) {
-      w.tabs = tabs;
-      w = backgroundPage.saveWindow(w, nameInput.value);
+      currentWindow.tabs = tabs;
+      savedWindow = backgroundPage.saveWindow(currentWindow, nameInput.value);
       formEl.style.display = "none";
-      appendWindowToList(w, nameInput.value);
+      appendWindowToList(savedWindow, nameInput.value);
     });
   });
   return false;
 }
+
 
 // open a saved window
 // called when the user clicks the name of a saved window that is closed.
@@ -103,31 +107,35 @@ function openSavedWindow(element) {
   backgroundPage.openWindow(name);
 }
 
+
 // focus an open window
 // called when the user clicks the name of a saved window that is open.
 function focusOpenWindow(windowId) {
   chrome.windows.update(windowId, {focused: true});
 }
 
+
 // delete a saved window
 // called when the user presses the delete button
-function deleteSavedWindow(e, element) {
+function deleteSavedWindow(event, element) {
+  event.stopPropagation();
+
   // get data
   var li = element.parentNode;
   var name = li.getAttribute("data-name");
-  var w = backgroundPage.savedWindows[name]
+  var savedWindow = backgroundPage.savedWindows[name]
   var text = li.childNodes[1].innerHTML;
 
   // save information for undo
   undo[name] = {
     className: li.className,
     text: text,
-    w: w,
-    id: w.id
+    savedWindow: savedWindow,
+    id: savedWindow.id
   };
   // we save this separately since deleteSavedWindow nixes it.
-  if (w.id) {
-    undo[name].id = w.id
+  if (savedWindow.id) {
+    undo[name].id = savedWindow.id
   }
 
   // actually perform the deletion
@@ -135,15 +143,16 @@ function deleteSavedWindow(e, element) {
 
   // update display
   li.className = "deleted";
-  setText(li, "<b>" + getDisplayName(w) + "<\/b> was deleted.");
+  setText(li, "<b>" + getDisplayName(savedWindow) + "<\/b> was deleted.");
   // TODO: show the form if current window
-
-  e.stopPropagation();
 }
+
 
 // undo a deletion
 // called when the user presse the undo button
-function undoDeleteSavedWindow(e, element) {
+function undoDeleteSavedWindow(event, element) {
+  event.stopPropagation();
+
   // get data
   var li = element.parentNode;
   var name = li.getAttribute("data-name");
@@ -151,11 +160,11 @@ function undoDeleteSavedWindow(e, element) {
 
   // restore the window id
   if (undoInfo.id) {
-    undoInfo.w.id = undoInfo.id;
+    undoInfo.savedWindow.id = undoInfo.id;
   }
 
   // resave the window
-  backgroundPage.saveWindow(undoInfo.w, name);
+  backgroundPage.saveWindow(undoInfo.savedWindow, name);
 
   // update display
   li.className = undoInfo.className;
@@ -164,19 +173,20 @@ function undoDeleteSavedWindow(e, element) {
   // clean up
   delete undo[name];
   // TODO: hide the form if current window
-
-  e.stopPropagation();
 }
+
 
 // given a list element, sets the text
 function setText(element, text) {
   element.childNodes[1].innerHTML = text;
 }
 
+
 // formats the name for display
-function getDisplayName(w) {
-  return w.displayName + " (" + w.tabs.length + ")";
+function getDisplayName(savedWindow) {
+  return savedWindow.displayName + " (" + savedWindow.tabs.length + ")";
 }
+
 
 </script>
 
