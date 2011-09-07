@@ -222,11 +222,16 @@ function getDisplayName(savedWindow) {
     </li>
   </ul>
   <div id="footer">
-    <span id="update">
-      <img src="new.png" /> Click on an open window to focus it.<br/>
-      If you like this extension, please <a href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc">rate it</a>. Thanks!<br/>
-    </span>
-    Bugs or suggestions? <a href="" onclick="chrome.tabs.create({url:'mailto:simpleWindowSaver@nickbaum.com'});">Contact me.</a>
+    <div id="update">
+      <img src="new.png" />
+      <ul>
+        <li>Fixed click-to-focus</li>
+        <li>Reversed order of saved windows for easier access to recently saved windows</li>
+        <li>Collecting anonymous stats via Google Analytics (<a href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc">details here</a>)</li>
+      </ul>
+      If you like this extension, please <a href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc">rate it</a>. Thanks!
+    </div>
+    Bugs or suggestions? <a href="" onclick="chrome.tabs.create({url:'mailto:simpleWindowSaver@nickbaum.com'});">Contact me</a>
   </div>
 </div>
 

@@ -8,9 +8,9 @@ var updateMsgCount = restoreFromLocalStorage("updateMsgCount", 0);
 
 
 // if the extension has been updated, show the update message 5 times
-if (parseFloat(localStorage.version) < 1.1) {
+if (!localStorage.version || parseFloat(localStorage.version) < 1.3) {
   updateMsgCount = 5;
-  localStorage.version = "1.1";
+  localStorage.version = "1.3";
 }
 if (updateMsgCount > 0) {
   updateBadgeForAllWindows();
