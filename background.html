@@ -221,6 +221,11 @@ function onWindowOpened(savedWindow, browserWindow) {
       chrome.tabs.update(browserWindow.tabs[i].id, {pinned: true});
     }
   }
+
+  // move the window to the end of the list (so it appears at the top of the popup)
+  savedWindowNames.splice(savedWindowNames.indexOf(savedWindow.name), 1);
+  savedWindowNames[savedWindowNames.length] = savedWindow.name;
+  localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
 }
 
 
