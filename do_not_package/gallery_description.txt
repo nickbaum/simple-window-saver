@@ -1,0 +1,25 @@
+Simple Window Saver makes it super easy to save and restore windows. Keep one window for work tabs, one for Gmail and Facebook, and one for your vacation planning or the research on that new TV you want to buy.
+
+As the title reveals, simplicity is the name of the game. Unlike other session managers, Simple Window Saver remembers when you've saved a window and keeps track of changes. It's not full of features you don't need – it does what you want and it does it well.
+
+Go ahead, give it a try!
+
+If you have feedback or suggestions, do not hesitate to contact me at simplewindowsaver@nickbaum.com. And if you like this extension, remember to give it a good rating!
+
+- - Data collection - -
+Simple Window Saver uses Google Analytics to collect anonymous usage data, such as how many saved windows users have and how often a new window is saved. This helps me improve the extension.
+
+I DO NOT and WILL NEVER track the urls or titles of the windows/tabs you save, or the names of the saved windows. If you have any concerns about this, you are welcome to inspect the source code (github link below, or use Chrome's web inspector).
+
+- - Contributors - -
+Please join me in thanking Timo Reimann for his contributions to this project. Timo has submitted several patches that improve the reliability and performance of the extension.
+
+- - Changes - -
+Version 1.3:
+* made most recently opened windows appear at the top of the list
+* fixed click-to-focus
+* added support pinned tabs
+* Google Analytics
+Version 1.2: improvements in reliability
+Version 1.1: click an open window to focus it
+Version 1.0: initial release
