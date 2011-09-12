@@ -9,7 +9,7 @@ If you have feedback or suggestions, do not hesitate to contact me at simplewind
 - - Data collection - -
 Simple Window Saver uses Google Analytics to collect anonymous usage data, such as how many saved windows users have and how often a new window is saved. This helps me improve the extension.
 
-I DO NOT and WILL NEVER track the urls or titles of the windows/tabs you save, or the names of the saved windows. If you have any concerns about this, you are welcome to inspect the source code (github link below, or use Chrome's web inspector).
+I DO NOT track the urls or titles of the windows/tabs you save, or the names of the saved windows. If you have any concerns about this, you are welcome to inspect the source code (github link below, or use Chrome's web inspector).
 
 - - Contributors - -
 Please join me in thanking Timo Reimann for his contributions to this project. Timo has submitted several patches that improve the reliability and performance of the extension.
