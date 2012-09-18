@@ -59,7 +59,7 @@ debug.addDebugUI = function(document){
   var footer = document.getElementById('footer');
   var url = chrome.extension.getURL("do_not_package/view_log.html");
   var link = ' - <a href="javascript:chrome.tabs.create({url:\'' + url + '\'});">View logs</a>';
-  footer.innerHTML = footer.innerHTML + link;
+  // footer.innerHTML = footer.innerHTML + link;
 };
 
 /* EVENT LISTENERS for logging */
