@@ -14,9 +14,6 @@ function init() {
   template = document.getElementById("template");
   deleteEl = document.getElementById("delete");
   undoEl = document.getElementById("undo");
-  updatedEl = document.getElementById("updated");
-  rateEl = document.getElementById("rate");
-  contactEl = document.getElementById("contact");
 
   // initialize links
   formEl.addEventListener("submit", saveWindow, false);
@@ -25,16 +22,6 @@ function init() {
   delete deleteEl.id;
   undoEl.addEventListener("click", undoDeleteSavedWindow, false);
   delete undoEl.id;
-  openLink = function(url) {
-    return function(event) {
-      event.preventDefault();
-      console.log(url);
-      chrome.tabs.create({url: url});
-    }
-  }
-  updatedEl.addEventListener("click", openLink('https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc'), false);
-  rateEl.addEventListener("click", openLink('https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc'), false);
-  contactEl.addEventListener("click", openLink('mailto:simpleWindowSaver@nickbaum.com'), false);
 
   // CSS buster - only used when developing locally
   style = document.getElementById("style");
