@@ -17,8 +17,8 @@ function init() {
   formEl.addEventListener("submit", saveWindow, false);
 
   // CSS buster - only used when developing locally
-  style = document.getElementById("style");
-  style.href = style.href + "?salt=" + Math.random();
+  // style = document.getElementById("style");
+  // style.href = style.href + "?salt=" + Math.random();
 
   // populate list of windows
   chrome.windows.getCurrent(function(currentWindow) {
@@ -62,21 +62,19 @@ function appendWindowToList(savedWindow, currentWindowName) {
   var li = template.cloneNode(true);
   li.removeAttribute("id");
   li.setAttribute("data-name", savedWindow.name);
-  li.addEventListener("click", openSavedWindow, false);
-  // deleteEl.addEventListener("click", deleteSavedWindow, false);
-  // delete deleteEl.id;
-  // undoEl.addEventListener("click", undoDeleteSavedWindow, false);
-  // delete undoEl.id;
+  li.querySelector(".delete").addEventListener("click", deleteSavedWindow, false);
+  li.querySelector(".undo").addEventListener("click", undoDeleteSavedWindow, false);
 
   var count = savedWindow.tabs.length;
   var text = savedWindow.displayName + " (" + count + ")";
   if (savedWindow.name == currentWindowName) {
     li.className = "current";
-    li.onclick = null;
     text = "This is <b>" + text + "<\/b>.";
   } else if (savedWindow.id) {
     li.className = "open";
-    li.onclick = function() { focusOpenWindow(savedWindow.id); };
+    li.addEventListener("click", focusOpenWindow, false);
+  } else {
+    li.addEventListener("click", openSavedWindow, false);
   }
   setText(li, text);
 
@@ -103,9 +101,10 @@ function saveWindow(event) {
 
 // open a saved window
 // called when the user clicks the name of a saved window that is closed.
-function openSavedWindow(element) {
-  // TODO: refactor to just use name as argument
-  name = element.getAttribute("data-name");
+function openSavedWindow(event) {
+  event.preventDefault();
+
+  var name = event.currentTarget.getAttribute("data-name");
   backgroundPage.openWindow(name);
 
   var savedWindow = backgroundPage.savedWindows[name];
@@ -115,19 +114,25 @@ function openSavedWindow(element) {
 
 // focus an open window
 // called when the user clicks the name of a saved window that is open.
-function focusOpenWindow(windowId) {
-  chrome.windows.update(windowId, {focused: true});
+function focusOpenWindow(event) {
+  event.preventDefault();
+
+  var name = event.currentTarget.getAttribute("data-name");
+  var savedWindow = backgroundPage.savedWindows[name];
+
+  chrome.windows.update(savedWindow.id, {focused: true});
   backgroundPage._gaq.push(['_trackEvent', 'popup', 'focusWindow']);
 }
 
 
 // delete a saved window
 // called when the user presses the delete button
-function deleteSavedWindow(event, element) {
+function deleteSavedWindow(event) {
+  event.preventDefault();
   event.stopPropagation();
 
   // get data
-  var li = element.parentNode;
+  var li = event.target.parentNode;
   var name = li.getAttribute("data-name");
   var savedWindow = backgroundPage.savedWindows[name]
   var text = li.childNodes[1].innerHTML;
@@ -158,11 +163,12 @@ function deleteSavedWindow(event, element) {
 
 // undo a deletion
 // called when the user presse the undo button
-function undoDeleteSavedWindow(event, element) {
+function undoDeleteSavedWindow(event) {
+  event.preventDefault();
   event.stopPropagation();
 
   // get data
-  var li = element.parentNode;
+  var li = event.target.parentNode;
   var name = li.getAttribute("data-name");
   var undoInfo = undo[name];
   var savedWindow = undoInfo.savedWindow;
