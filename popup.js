@@ -12,16 +12,9 @@ function init() {
   formEl = document.getElementById("form");
   nameInput = document.getElementById("nameInput");
   template = document.getElementById("template");
-  deleteEl = document.getElementById("delete");
-  undoEl = document.getElementById("undo");
 
   // initialize links
   formEl.addEventListener("submit", saveWindow, false);
-  template.addEventListener("click", openSavedWindow, false);
-  deleteEl.addEventListener("click", deleteSavedWindow, false);
-  delete deleteEl.id;
-  undoEl.addEventListener("click", undoDeleteSavedWindow, false);
-  delete undoEl.id;
 
   // CSS buster - only used when developing locally
   style = document.getElementById("style");
@@ -69,6 +62,11 @@ function appendWindowToList(savedWindow, currentWindowName) {
   var li = template.cloneNode(true);
   li.removeAttribute("id");
   li.setAttribute("data-name", savedWindow.name);
+  li.addEventListener("click", openSavedWindow, false);
+  // deleteEl.addEventListener("click", deleteSavedWindow, false);
+  // delete deleteEl.id;
+  // undoEl.addEventListener("click", undoDeleteSavedWindow, false);
+  // delete undoEl.id;
 
   var count = savedWindow.tabs.length;
   var text = savedWindow.displayName + " (" + count + ")";
@@ -89,7 +87,8 @@ function appendWindowToList(savedWindow, currentWindowName) {
 
 
 // save window in background page and update display
-function saveWindow() {
+function saveWindow(event) {
+  event.preventDefault();
   chrome.windows.getCurrent(function(currentWindow) {
     chrome.tabs.getAllInWindow(null, function(tabs) {
       currentWindow.tabs = tabs;
@@ -99,7 +98,6 @@ function saveWindow() {
       backgroundPage._gaq.push(['_trackEvent', 'popup', 'saveWindow', 'Value is tab count.', savedWindow.tabs.length]);
     });
   });
-  return false;
 }
 
 
