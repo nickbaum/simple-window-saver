@@ -1,16 +1,21 @@
 {
   "name": "Simple Window Saver",
   "version": "1.3",
+  "manifest_version": 2,
   "description": "Save and restore windows.",
   "icons": { "16": "icon16.png",
              "48": "icon48.png",
              "128": "icon128.png" },
   "browser_action": {
-    "default_icon": "icon19.png",
+    "default_icon": {
+      "19": "icon19.png"
+    },
     "default_title": "Simple Window Saver",
-    "popup": "popup.html"
+    "default_popup": "popup.html"
   },
-  "background_page": "background.html",
+  "background": {
+    "page": "background.html"
+  },
   "permissions": [
     "tabs"
   ]
