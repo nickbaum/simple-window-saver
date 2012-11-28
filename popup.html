@@ -1,31 +1,32 @@
 <html>
 <head>
 <link id="style" rel="stylesheet" type="text/css" href="popup.css" />
+<script src="popup.js" type="text/javascript"></script>
 </head>
-<body onload="init();">
+<body>
 
 <div>
-  <form id="form" onsubmit="return saveWindow();">
+  <form id="form">
     Save as: <input type="text" id="nameInput" />
   </form>
   <div id="incognitoMsg">Note: you can't save incognito windows.</div>
   <ul id="savedWindowList">
-     <li id="template" onclick="openSavedWindow(this);">
+     <li id="template">
        <span class="text">Name</span><!--
-     --><span class="delete" onclick="deleteSavedWindow(event, this);">
+     --><span class="delete">
         &times;
       </span><!--
-     --><span class="undo" onclick="undoDeleteSavedWindow(event, this);">
+     --><span class="undo">
         undo
       </span>
     </li>
   </ul>
   <div id="footer">
     <span id="update">
-      <img src="new.png" /> The extension has been updated (<a href="" onclick="chrome.tabs.create({url: 'https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc'});">details</a>)<br/>
-      If you like this extension, please <a href="" onclick="chrome.tabs.create({url: 'https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc'});">rate it</a>. Thanks!<br/>
+      <img src="new.png" /> The extension has been updated (<a class="store" href="">details</a>)<br/>
+      If you like this extension, please <a class="store" href="">rate it</a>. Thanks!<br/>
     </span>
-    Bugs or suggestions? <a href="" onclick="chrome.tabs.create({url:'mailto:simpleWindowSaver@nickbaum.com'});">Contact me.</a>
+    Bugs or suggestions? <a id="mail" href="">Contact me.</a>
   </div>
 </div>
 

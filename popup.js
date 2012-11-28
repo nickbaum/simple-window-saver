@@ -62,6 +62,8 @@ function appendWindowToList(savedWindow, currentWindowName) {
 
   var count = savedWindow.tabs.length;
   var text = savedWindow.displayName + " (" + count + ")";
+  li.getElementsByClassName('delete')[0].addEventListener('click', deleteSavedWindow);
+  li.getElementsByClassName('undo')[0].addEventListener('click', undoDeleteSavedWindow);
   if (savedWindow.name == currentWindowName) {
     li.className = "current";
     li.onclick = null;
@@ -69,6 +71,8 @@ function appendWindowToList(savedWindow, currentWindowName) {
   } else if (savedWindow.id) {
     li.className = "open";
     li.onclick = function() { focusOpenWindow(savedWindow.id); };
+  } else {
+    li.onclick = openSavedWindow;
   }
   setText(li, text);
 
@@ -79,7 +83,7 @@ function appendWindowToList(savedWindow, currentWindowName) {
 
 
 // save window in background page and update display
-function saveWindow() {
+function saveWindow(event) {
   chrome.windows.getCurrent(function(currentWindow) {
     chrome.tabs.getAllInWindow(null, function(tabs) {
       currentWindow.tabs = tabs;
@@ -89,15 +93,15 @@ function saveWindow() {
       backgroundPage._gaq.push(['_trackEvent', 'popup', 'saveWindow', 'Value is tab count.', savedWindow.tabs.length]);
     });
   });
-  return false;
+  event.preventDefault();
 }
 
 
 // open a saved window
 // called when the user clicks the name of a saved window that is closed.
-function openSavedWindow(element) {
+function openSavedWindow() {
   // TODO: refactor to just use name as argument
-  name = element.getAttribute("data-name");
+  name = this.getAttribute("data-name");
   backgroundPage.openWindow(name);
 
   var savedWindow = backgroundPage.savedWindows[name];
@@ -115,11 +119,11 @@ function focusOpenWindow(windowId) {
 
 // delete a saved window
 // called when the user presses the delete button
-function deleteSavedWindow(event, element) {
+function deleteSavedWindow(event) {
   event.stopPropagation();
 
   // get data
-  var li = element.parentNode;
+  var li = this.parentNode;
   var name = li.getAttribute("data-name");
   var savedWindow = backgroundPage.savedWindows[name]
   var text = li.childNodes[1].innerHTML;
@@ -150,11 +154,11 @@ function deleteSavedWindow(event, element) {
 
 // undo a deletion
 // called when the user presse the undo button
-function undoDeleteSavedWindow(event, element) {
+function undoDeleteSavedWindow(event) {
   event.stopPropagation();
 
   // get data
-  var li = element.parentNode;
+  var li = this.parentNode;
   var name = li.getAttribute("data-name");
   var undoInfo = undo[name];
   var savedWindow = undoInfo.savedWindow;
@@ -189,3 +193,19 @@ function setText(element, text) {
 function getDisplayName(savedWindow) {
   return savedWindow.displayName + " (" + savedWindow.tabs.length + ")";
 }
+
+
+// after the DOM has been fully loaded, register various event listeners and call init()
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('form').addEventListener('submit', saveWindow);
+  var storeLinks = document.getElementsByClassName('store');
+  for (var i = 0; i < storeLinks.length; i++) {
+    storeLinks[i].addEventListener('click', function () {
+      chrome.tabs.create({url: 'https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc'});
+    });
+  }
+  document.getElementById('mail', function () {
+    chrome.tabs.create({url: 'mailto:simpleWindowSaver@nickbaum.com'});
+  });
+  init();
+});
