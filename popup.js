@@ -200,11 +200,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('form').addEventListener('submit', saveWindow);
   var storeLinks = document.getElementsByClassName('store');
   for (var i = 0; i < storeLinks.length; i++) {
-    storeLinks[i].addEventListener('click', function () {
+    storeLinks[i].addEventListener('click', function() {
       chrome.tabs.create({url: 'https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc'});
     });
   }
-  document.getElementById('mail', function () {
+  document.getElementById('mail', function() {
     chrome.tabs.create({url: 'mailto:simpleWindowSaver@nickbaum.com'});
   });
   init();
