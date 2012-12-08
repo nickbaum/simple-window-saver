@@ -1,23 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-
-
-<script>
-// helper function to restore from localStorage
-function restoreFromLocalStorage(key, defaultValue) {
-  if (localStorage[key]) {
-    return JSON.parse(localStorage[key]);
-  } else {
-    localStorage[key] = JSON.stringify(defaultValue);
-    return defaultValue;
-  }
-}
-</script>
-<script src="eventHandlers.js"></script>
-<script src="badge.js"></script>
-<script>
-
 /*
 
 The background page is responsible for the following:
@@ -29,6 +9,18 @@ The background page is responsible for the following:
 FEATURE: omnibox support
 
 */
+
+
+// helper function to restore from localStorage
+function restoreFromLocalStorage(key, defaultValue) {
+  if (localStorage[key]) {
+    return JSON.parse(localStorage[key]);
+  } else {
+    localStorage[key] = JSON.stringify(defaultValue);
+    return defaultValue;
+  }
+}
+
 
 var DEFAULT_NAME = "Window";
 
@@ -68,7 +60,7 @@ _gaq.push(['_setAccount', 'UA-18459718-1']);
 _gaq.push(['_setCustomVar', 1, 'windowCount', savedWindowNames.length, 1]);
 (function() {
   var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+  ga.src = 'https://ssl.google-analytics.com/ga.js';
   var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 })();
 
@@ -248,21 +240,3 @@ function deleteSavedWindow(name) {
   savedWindowNames.splice(savedWindowNames.indexOf(name), 1);
   localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
 }
-
-
-</script>
-
-<!--
-During development, this file loads debugging code.
-The packaging script replaces it with a file that does nothing.
--->
-<script src="debug.js"></script>
-
-
-</head>
-<body>
-  <script type="text/javascript">
-  </script>
-</body>
-</html>
-
