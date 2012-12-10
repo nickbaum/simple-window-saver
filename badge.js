@@ -21,12 +21,12 @@ if (updateMsgCount > 0) {
 
 
 // updates the browserAction badge to show the window as saved
-function showSavedBadge(tabId) {
+function showSavedBadge(tabId, w) {
   var text;
   if (updateMsgCount > 0) {
     text = "new!";
   } else {
-    text = "v";
+    text = "" + w.tabs.length;
   }
   chrome.browserAction.setBadgeText({text:text, tabId:tabId});
   chrome.browserAction.setBadgeBackgroundColor(
@@ -52,8 +52,10 @@ function showUnsavedBadge(tabId) {
 
 // update the badge for the given tab
 function updateBadgeForTab(tab) {
-  if (windowIdToName[tab.windowId]) {
-    showSavedBadge(tab.id);
+  var windowName = windowIdToName[tab.windowId];
+  if (windowName) {
+    var w = savedWindows[windowName]
+    showSavedBadge(tab.id, w);
   } else {
     showUnsavedBadge(tab.id);
   }
