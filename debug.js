@@ -12,7 +12,10 @@ In general though, we try to keep links between this code and the main code as l
 */
 
 // change the icon so you can distinguish a locally loaded extension
-chrome.browserAction.setIcon({path:'do_not_package/debug_icon19.png'});
+chrome.browserAction.setIcon({path: {
+  '19': 'do_not_package/debug_icon19.png',
+  '38': 'do_not_package/debug_icon38.png'
+}});
 
 // separate context for debug actions
 // all functions in this file should be in this context
