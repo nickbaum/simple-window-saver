@@ -115,7 +115,7 @@ li:hover > .delete {
   margin-left: 20px;
 }
 
-.undo:hover  {
+.undo:hover {
   cursor: pointer;
 }
 
@@ -126,12 +126,16 @@ li:hover > .delete {
   margin: 5px;
 }
 
-input {
+input, label {
   padding: 3px;
   font-weight: bold;
-  font-size:100%;
+  font-size: 100%;
   border: 3px solid #ccc;
   border-radius: 5px;
+}
+
+label {
+  background-color: #DDD;
 }
 
 input:focus {
@@ -158,5 +162,15 @@ input:focus {
 }
 
 #update {
+  display: none;
+}
+
+#export, label {
+  color: black;
+  padding: 0px 5px;
+  cursor: pointer;
+}
+
+#import {
   display: none;
 }

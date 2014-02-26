@@ -2,17 +2,21 @@
 // FEATURE: support drag & drop merging
 
 var backgroundPage = chrome.extension.getBackgroundPage();
-var savedWindowListEl, formEl, nameInput, template;
+var savedWindowListEl, formEl, nameInput, template, exportWindow, importWindow;
 var undo = new Object();
 
-
-function init() {
+function init(){
   // initialize variables we'll need
   savedWindowListEl = document.getElementById("savedWindowList");
   formEl = document.getElementById("form");
   nameInput = document.getElementById("nameInput");
   template = document.getElementById("template");
+  exportWindow = document.getElementById("export");
+  importWindow = document.getElementById("import");
 
+  // initialize Export and Import
+  exportWindow.addEventListener("click", exportWindowList, false);
+  importWindow.addEventListener("change", importWindowList, false);
   // initialize links
   formEl.addEventListener("submit", saveWindow, false);
 
@@ -21,19 +25,19 @@ function init() {
   // style.href = style.href + "?salt=" + Math.random();
 
   // populate list of windows
-  chrome.windows.getCurrent(function(currentWindow) {
+  chrome.windows.getCurrent(function (currentWindow){
     var currentWindowName = backgroundPage.windowIdToName[currentWindow.id];
     var savedWindows = backgroundPage.savedWindows;
     var savedWindowNames = backgroundPage.savedWindowNames;
-    for (var i in savedWindowNames) {
+    for (var i in savedWindowNames){
       var name = savedWindowNames[i];
       var savedWindow = savedWindows[name];
       appendWindowToList(savedWindow, currentWindowName);
     }
-    if (!currentWindowName) {
-      if (currentWindow.incognito) {
+    if (!currentWindowName){
+      if (currentWindow.incognito){
         document.getElementById("incognitoMsg").style.display = "block";
-      } else {
+      } else{
         nameInput.value = backgroundPage.DEFAULT_NAME;
         formEl.style.display = "block";
         nameInput.focus();
@@ -44,11 +48,11 @@ function init() {
 
   // decrement update message counter
   var count = backgroundPage.updateMsgCount;
-  if (count > 0) {
+  if (count > 0){
     backgroundPage.updateMsgCount = count - 1;
     localStorage.updateMsgCount = count - 1;
     document.getElementById("update").style.display = "block";
-  } else {
+  } else{
     backgroundPage.updateBadgeForAllWindows();
   }
 
@@ -58,7 +62,7 @@ function init() {
 document.addEventListener('DOMContentLoaded', init);
 
 // add window to HTML list of windows
-function appendWindowToList(savedWindow, currentWindowName) {
+function appendWindowToList(savedWindow, currentWindowName){
   var li = template.cloneNode(true);
   li.removeAttribute("id");
   li.setAttribute("data-name", savedWindow.name);
@@ -67,13 +71,13 @@ function appendWindowToList(savedWindow, currentWindowName) {
 
   var count = savedWindow.tabs.length;
   var text = savedWindow.displayName + " (" + count + ")";
-  if (savedWindow.name == currentWindowName) {
+  if (savedWindow.name == currentWindowName){
     li.className = "current";
     text = "This is <b>" + text + "<\/b>.";
-  } else if (savedWindow.id) {
+  } else if (savedWindow.id){
     li.className = "open";
     li.addEventListener("click", focusOpenWindow, false);
-  } else {
+  } else{
     li.addEventListener("click", openSavedWindow, false);
   }
   setText(li, text);
@@ -83,12 +87,11 @@ function appendWindowToList(savedWindow, currentWindowName) {
   savedWindowListEl.insertBefore(li, savedWindowListEl.firstChild);
 }
 
-
 // save window in background page and update display
-function saveWindow(event) {
+function saveWindow(event){
   event.preventDefault();
-  chrome.windows.getCurrent(function(currentWindow) {
-    chrome.tabs.getAllInWindow(null, function(tabs) {
+  chrome.windows.getCurrent(function (currentWindow){
+    chrome.tabs.getAllInWindow(null, function (tabs){
       currentWindow.tabs = tabs;
       savedWindow = backgroundPage.saveWindow(currentWindow, nameInput.value);
       formEl.style.display = "none";
@@ -98,10 +101,9 @@ function saveWindow(event) {
   });
 }
 
-
 // open a saved window
 // called when the user clicks the name of a saved window that is closed.
-function openSavedWindow(event) {
+function openSavedWindow(event){
   event.preventDefault();
 
   var name = event.currentTarget.getAttribute("data-name");
@@ -111,23 +113,21 @@ function openSavedWindow(event) {
   backgroundPage._gaq.push(['_trackEvent', 'popup', 'openWindow', 'Value is tab count.', savedWindow.tabs.length]);
 }
 
-
 // focus an open window
 // called when the user clicks the name of a saved window that is open.
-function focusOpenWindow(event) {
+function focusOpenWindow(event){
   event.preventDefault();
 
   var name = event.currentTarget.getAttribute("data-name");
   var savedWindow = backgroundPage.savedWindows[name];
 
-  chrome.windows.update(savedWindow.id, {focused: true});
+  chrome.windows.update(savedWindow.id, {focused : true});
   backgroundPage._gaq.push(['_trackEvent', 'popup', 'focusWindow']);
 }
 
-
 // delete a saved window
 // called when the user presses the delete button
-function deleteSavedWindow(event) {
+function deleteSavedWindow(event){
   event.preventDefault();
   event.stopPropagation();
 
@@ -139,13 +139,13 @@ function deleteSavedWindow(event) {
 
   // save information for undo
   undo[name] = {
-    className: li.className,
-    text: text,
-    savedWindow: savedWindow,
-    id: savedWindow.id
+    className   : li.className,
+    text        : text,
+    savedWindow : savedWindow,
+    id          : savedWindow.id
   };
   // we save this separately since deleteSavedWindow nixes it.
-  if (savedWindow.id) {
+  if (savedWindow.id){
     undo[name].id = savedWindow.id
   }
 
@@ -160,10 +160,9 @@ function deleteSavedWindow(event) {
   backgroundPage._gaq.push(['_trackEvent', 'popup', 'deleteWindow', 'Value is tab count.', savedWindow.tabs.length]);
 }
 
-
 // undo a deletion
 // called when the user presse the undo button
-function undoDeleteSavedWindow(event) {
+function undoDeleteSavedWindow(event){
   event.preventDefault();
   event.stopPropagation();
 
@@ -174,7 +173,7 @@ function undoDeleteSavedWindow(event) {
   var savedWindow = undoInfo.savedWindow;
 
   // restore the window id
-  if (undoInfo.id) {
+  if (undoInfo.id){
     savedWindow.id = undoInfo.id;
   }
 
@@ -192,14 +191,63 @@ function undoDeleteSavedWindow(event) {
   backgroundPage._gaq.push(['_trackEvent', 'popup', 'undoDeleteWindow', 'Value is tab count.', savedWindow.tabs.length]);
 }
 
-
 // given a list element, sets the text
-function setText(element, text) {
+function setText(element, text){
   element.childNodes[1].innerHTML = text;
 }
 
-
 // formats the name for display
-function getDisplayName(savedWindow) {
+function getDisplayName(savedWindow){
   return savedWindow.displayName + " (" + savedWindow.tabs.length + ")";
+}
+
+/**
+ * Export Window List
+ * exports the current save windows to text file
+ * @param event
+ */
+function exportWindowList(event){
+  var window = JSON.stringify({
+    'savedWindowNames' : backgroundPage.savedWindowNames,
+    'savedWindows'     : backgroundPage.savedWindows
+  });
+  var blob = new Blob([window], {type : "text/plain"});
+  saveAs(blob, 'simplewindows.txt');
+}
+
+/**
+ * Imports Window List
+ * Imports saved windows from a list. Will not import window list if name is currently used
+ * @param event
+ */
+function importWindowList(event){
+  var reader = new FileReader();
+  reader.onerror = function (e){
+  };
+  var file = event.target.files[0];
+  reader.onload = function (e){
+    var contents = e.target.result;
+    var windowsImported;
+    try{
+      windowsImported = JSON.parse(contents);
+      if (windowsImported.savedWindowNames === undefined || windowsImported.savedWindows === undefined){
+        throw "Wrong File Layout";
+      }
+      windowsImported.savedWindowNames.forEach(function (name){
+        if (backgroundPage.savedWindows[name] === undefined){
+          savedWindow = backgroundPage.saveWindow(windowsImported.savedWindows[name], name);
+          formEl.style.display = "none";
+          appendWindowToList(savedWindow);
+        }
+      });
+    } catch (e){
+      alert('Failed To Parse File');
+    }
+  }
+  reader.readAsText(file);
+  var clone = importWindow.cloneNode();
+  importWindow.parentNode.appendChild(clone);
+  importWindow.remove();
+  importWindow = clone;
+  importWindow.addEventListener("change", importWindowList, false);
 }
