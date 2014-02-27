@@ -250,21 +250,21 @@ function importWindowList(event){
   reader.onload = function (e){
     var contents = e.target.result;
     var windowsImported;
-    try{
+//    try{
       windowsImported = JSON.parse(contents);
-      if (windowsImported.savedWindowNames === undefined || windowsImported.savedWindows === undefined){
-        throw "Wrong File Layout";
-      }
+//      if (windowsImported.savedWindowNames === undefined || windowsImported.savedWindows === undefined){
+//        throw "Wrong File Layout";
+//      }
       windowsImported.savedWindowNames.forEach(function (name){
-        if (backgroundPage.savedWindows[name] === undefined){
+        if (backgroundPage.savedWindows===undefined||backgroundPage.savedWindows[name] === undefined){
           savedWindow = backgroundPage.saveWindow(windowsImported.savedWindows[name], name);
           formEl.style.display = "none";
           appendWindowToList(savedWindow);
         }
       });
-    } catch (e){
-      alert('Failed To Parse File');
-    }
+//    } catch (e){
+//      alert('Failed To Parse File');
+//    }
   };
   reader.readAsText(file);
   var clone = importWindow.cloneNode();

@@ -19,40 +19,29 @@ var savedWindowNames = restoreFromLocalStorage("savedWindowNames", []);
 // saved windows, keyed by name
 // If the savedWindow has an id, it is currently open.
 // Each savedWindow can only correspond to one open window at any given time.
-var savedWindows = {}();
+var savedWindows = {};
 
 // map the ids of open windows to saved window names
 // used to respond to events
-var windowIdToName = {}();
+var windowIdToName = {};
 
 /* EDGE CASES */
 // saved windows that aren't currently open, keyed by name
 // used to match new windows to saved windows that are still closed
-var closedWindows = {}();
+var closedWindows = {};
 
 // Unfortunately, removing a tab doesn't give us a windowId
 // so we need to keep track of that mapping.
-var tabIdToSavedWindowId = {}();
+var tabIdToSavedWindowId = {};
 
 // object that stores per-window flags as to whether API indicated
 // window-closing intention on tab removal
-var isWindowClosing = {}();
+var isWindowClosing = {};
 
 
 /* INIT */
 
 
-//// Google Analytics
-//var _gaq = _gaq || [];
-//_gaq.push(['_setAccount', 'UA-18459718-1']);
-//_gaq.push(['_setCustomVar', 1, 'windowCount', savedWindowNames.length, 1]);
-//(function() {
-//  var ga = document.createElement('script');
-//  ga.type = 'text/javascript';
-//  ga.async = true;
-//  ga.src = 'https://www.google-analytics.com/ga.js';
-//  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-//})();
 
 
 // populate savedWindows from local storage
@@ -121,6 +110,10 @@ function saveWindow(browserWindow, displayName) {
   // handle duplicate names
   var name = displayName;
   var n = 0;
+//  var activewindow=
+  if(savedWindows){
+
+  }
   while(savedWindows[name]) {
     name = displayName + n;
     n++;
@@ -143,7 +136,8 @@ function saveWindow(browserWindow, displayName) {
 // returns the stored window
 function storeWindow(browserWindow, name, displayName) {
   var savedWindow = savedWindows[name];
-  if(savedWindow.locked){
+  //check if window is set for import and check if window is locked
+  if(savedWindow&&savedWindow.locked){
     return;
   }
   browserWindow.name = name;
