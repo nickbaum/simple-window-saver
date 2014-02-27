@@ -142,6 +142,10 @@ function saveWindow(browserWindow, displayName) {
 // store a window object
 // returns the stored window
 function storeWindow(browserWindow, name, displayName) {
+  var savedWindow = savedWindows[name];
+  if(savedWindow.locked){
+    return;
+  }
   browserWindow.name = name;
   browserWindow.displayName = displayName;
 
@@ -211,10 +215,17 @@ function onWindowOpened(savedWindow, browserWindow) {
 }
 
 
+function lockWindow(name,locked){
+  savedWindows[name]['locked']=locked;
+  localStorage[name]=JSON.stringify(savedWindows[name]);
+}
+
 // removed a saved window
 function deleteSavedWindow(name) {
   var savedWindow = savedWindows[name];
-
+  if(savedWindow.locked){
+    return;
+  }
   var id = savedWindow.id;
   if (id) {
     markWindowAsClosed(savedWindow);

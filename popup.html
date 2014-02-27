@@ -19,7 +19,10 @@
     <li id="template">
       <span class="text">Name</span><!--
      --><span class="delete">
-        &times;
+       &times;
+      </span><!--
+       --><span class="lock">
+
       </span><!--
      --><span class="undo">
         undo
@@ -27,9 +30,17 @@
     </li>
   </ul>
   <div class="manage">
-    <input type="button" id="export" value="Export"></input>
-    <label for="import">Import</label>
-    <input id="import" type="file" value="Import"/>
+    <table>
+      <tr>
+        <td>
+          <input type="button" id="export" value="Export"></input>
+        </td>
+        <td>
+          <label for="import">Import</label>
+          <input id="import" type="file" value="Import"/>
+        </td>
+      </tr>
+    </table>
   </div>
   <div id="footer">
     <span id="updated">

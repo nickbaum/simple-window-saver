@@ -4,6 +4,7 @@
 var backgroundPage = chrome.extension.getBackgroundPage();
 var savedWindowListEl, formEl, nameInput, template, exportWindow, importWindow;
 var undo = new Object();
+var locked = new Object();
 
 function init(){
   // initialize variables we'll need
@@ -32,6 +33,7 @@ function init(){
     for (var i in savedWindowNames){
       var name = savedWindowNames[i];
       var savedWindow = savedWindows[name];
+      if(savedWindow&&name)
       appendWindowToList(savedWindow, currentWindowName);
     }
     if (!currentWindowName){
@@ -67,6 +69,11 @@ function appendWindowToList(savedWindow, currentWindowName){
   li.removeAttribute("id");
   li.setAttribute("data-name", savedWindow.name);
   li.querySelector(".delete").addEventListener("click", deleteSavedWindow, false);
+  li.querySelector(".lock").addEventListener("click", lockSavedWindow, false);
+  if(savedWindow.locked){
+    li.querySelector('.delete').style.display = locked?'none':'';
+    li.querySelector(".lock").classList.add('locked');
+  }
   li.querySelector(".undo").addEventListener("click", undoDeleteSavedWindow, false);
 
   var count = savedWindow.tabs.length;
@@ -133,6 +140,9 @@ function deleteSavedWindow(event){
 
   // get data
   var li = event.target.parentNode;
+  //check if window is locked
+  if(li.querySelector('.lock').classList.contains('locked'))
+    return;
   var name = li.getAttribute("data-name");
   var savedWindow = backgroundPage.savedWindows[name]
   var text = li.childNodes[1].innerHTML;
@@ -159,7 +169,20 @@ function deleteSavedWindow(event){
 
   backgroundPage._gaq.push(['_trackEvent', 'popup', 'deleteWindow', 'Value is tab count.', savedWindow.tabs.length]);
 }
+function lockSavedWindow(event){
+  event.preventDefault();
+  event.stopPropagation();
+  this.classList.toggle('locked');
+  // get data
+  var li = event.target.parentNode;
+  var name = li.getAttribute("data-name");
+  var locked=this.classList.contains('locked');
 
+  //append Locked to array
+  backgroundPage.lockWindow(name,locked);
+  //update display
+  li.querySelector('.delete').style.display = locked?'none':'';
+}
 // undo a deletion
 // called when the user presse the undo button
 function undoDeleteSavedWindow(event){
@@ -168,6 +191,9 @@ function undoDeleteSavedWindow(event){
 
   // get data
   var li = event.target.parentNode;
+  //check if window is locked
+  if(li.querySelector('.lock').classList.contains('locked'))
+    return;
   var name = li.getAttribute("data-name");
   var undoInfo = undo[name];
   var savedWindow = undoInfo.savedWindow;
