@@ -14,45 +14,45 @@ var DEFAULT_NAME = "Window";
 
 /* BASIC STATE */
 // an array of the names of all saved windows
-var savedWindowNames = restoreFromLocalStorage("savedWindowNames", new Array());
+var savedWindowNames = restoreFromLocalStorage("savedWindowNames", []);
 
 // saved windows, keyed by name
 // If the savedWindow has an id, it is currently open.
 // Each savedWindow can only correspond to one open window at any given time.
-var savedWindows = new Object();
+var savedWindows = {}();
 
 // map the ids of open windows to saved window names
 // used to respond to events
-var windowIdToName = new Object();
+var windowIdToName = {}();
 
 /* EDGE CASES */
 // saved windows that aren't currently open, keyed by name
 // used to match new windows to saved windows that are still closed
-var closedWindows = new Object();
+var closedWindows = {}();
 
 // Unfortunately, removing a tab doesn't give us a windowId
 // so we need to keep track of that mapping.
-var tabIdToSavedWindowId = new Object();
+var tabIdToSavedWindowId = {}();
 
 // object that stores per-window flags as to whether API indicated
 // window-closing intention on tab removal
-var isWindowClosing = new Object();
+var isWindowClosing = {}();
 
 
 /* INIT */
 
 
-// Google Analytics
-var _gaq = _gaq || [];
-_gaq.push(['_setAccount', 'UA-18459718-1']);
-_gaq.push(['_setCustomVar', 1, 'windowCount', savedWindowNames.length, 1]);
-(function() {
-  var ga = document.createElement('script');
-  ga.type = 'text/javascript';
-  ga.async = true;
-  ga.src = 'https://www.google-analytics.com/ga.js';
-  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-})();
+//// Google Analytics
+//var _gaq = _gaq || [];
+//_gaq.push(['_setAccount', 'UA-18459718-1']);
+//_gaq.push(['_setCustomVar', 1, 'windowCount', savedWindowNames.length, 1]);
+//(function() {
+//  var ga = document.createElement('script');
+//  ga.type = 'text/javascript';
+//  ga.async = true;
+//  ga.src = 'https://www.google-analytics.com/ga.js';
+//  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+//})();
 
 
 // populate savedWindows from local storage
@@ -117,7 +117,7 @@ function windowsAreEqual(browserWindow, savedWindow) {
 // save a window
 // returns the saved window object
 function saveWindow(browserWindow, displayName) {
-  var displayName = (displayName == "") ? DEFAULT_NAME : displayName;
+   displayName = (displayName == "") ? DEFAULT_NAME : displayName;
   // handle duplicate names
   var name = displayName;
   var n = 0;

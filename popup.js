@@ -3,8 +3,8 @@
 
 var backgroundPage = chrome.extension.getBackgroundPage();
 var savedWindowListEl, formEl, nameInput, template, exportWindow, importWindow;
-var undo = new Object();
-var locked = new Object();
+var undo = {};
+var locked = {};
 
 function init(){
   // initialize variables we'll need
@@ -103,7 +103,7 @@ function saveWindow(event){
       savedWindow = backgroundPage.saveWindow(currentWindow, nameInput.value);
       formEl.style.display = "none";
       appendWindowToList(savedWindow, nameInput.value);
-      backgroundPage._gaq.push(['_trackEvent', 'popup', 'saveWindow', 'Value is tab count.', savedWindow.tabs.length]);
+//      backgroundPage._gaq.push(['_trackEvent', 'popup', 'saveWindow', 'Value is tab count.', savedWindow.tabs.length]);
     });
   });
 }
@@ -115,9 +115,6 @@ function openSavedWindow(event){
 
   var name = event.currentTarget.getAttribute("data-name");
   backgroundPage.openWindow(name);
-
-  var savedWindow = backgroundPage.savedWindows[name];
-  backgroundPage._gaq.push(['_trackEvent', 'popup', 'openWindow', 'Value is tab count.', savedWindow.tabs.length]);
 }
 
 // focus an open window
@@ -129,7 +126,7 @@ function focusOpenWindow(event){
   var savedWindow = backgroundPage.savedWindows[name];
 
   chrome.windows.update(savedWindow.id, {focused : true});
-  backgroundPage._gaq.push(['_trackEvent', 'popup', 'focusWindow']);
+//  backgroundPage._gaq.push(['_trackEvent', 'popup', 'focusWindow']);
 }
 
 // delete a saved window
@@ -144,7 +141,7 @@ function deleteSavedWindow(event){
   if(li.querySelector('.lock').classList.contains('locked'))
     return;
   var name = li.getAttribute("data-name");
-  var savedWindow = backgroundPage.savedWindows[name]
+  var savedWindow = backgroundPage.savedWindows[name];
   var text = li.childNodes[1].innerHTML;
 
   // save information for undo
@@ -167,7 +164,7 @@ function deleteSavedWindow(event){
   setText(li, "<b>" + getDisplayName(savedWindow) + "<\/b> was deleted.");
   // TODO: show the form if current window
 
-  backgroundPage._gaq.push(['_trackEvent', 'popup', 'deleteWindow', 'Value is tab count.', savedWindow.tabs.length]);
+//  backgroundPage._gaq.push(['_trackEvent', 'popup', 'deleteWindow', 'Value is tab count.', savedWindow.tabs.length]);
 }
 function lockSavedWindow(event){
   event.preventDefault();
@@ -214,7 +211,7 @@ function undoDeleteSavedWindow(event){
   delete undo[name];
   // TODO: hide the form if current window
 
-  backgroundPage._gaq.push(['_trackEvent', 'popup', 'undoDeleteWindow', 'Value is tab count.', savedWindow.tabs.length]);
+//  backgroundPage._gaq.push(['_trackEvent', 'popup', 'undoDeleteWindow', 'Value is tab count.', savedWindow.tabs.length]);
 }
 
 // given a list element, sets the text
@@ -230,9 +227,8 @@ function getDisplayName(savedWindow){
 /**
  * Export Window List
  * exports the current save windows to text file
- * @param event
  */
-function exportWindowList(event){
+function exportWindowList(){
   var window = JSON.stringify({
     'savedWindowNames' : backgroundPage.savedWindowNames,
     'savedWindows'     : backgroundPage.savedWindows
@@ -269,7 +265,7 @@ function importWindowList(event){
     } catch (e){
       alert('Failed To Parse File');
     }
-  }
+  };
   reader.readAsText(file);
   var clone = importWindow.cloneNode();
   importWindow.parentNode.appendChild(clone);
