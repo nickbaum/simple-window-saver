@@ -205,8 +205,11 @@ function onWindowOpened(savedWindow, browserWindow) {
   }
 
   // move the window to the end of the list (so it appears at the top of the popup)
-  savedWindowNames.splice(savedWindowNames.indexOf(savedWindow.name), 1);
-  savedWindowNames[savedWindowNames.length] = savedWindow.name;
+  if (restoreFromLocalStorage("moveLastToTop", false)) {
+    savedWindowNames.splice(savedWindowNames.indexOf(savedWindow.name), 1);
+    savedWindowNames[savedWindowNames.length] = savedWindow.name;
+  }
+
   localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
 }
 
