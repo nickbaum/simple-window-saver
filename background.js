@@ -143,7 +143,8 @@ function saveWindow(browserWindow, displayName) {
 // returns the stored window
 function storeWindow(browserWindow, name, displayName) {
   var savedWindow = savedWindows[name];
-  if(savedWindow && savedWindow.locked){
+  var locked=savedWindow?savedWindow.locked:false;
+  if (locked){
     return;
   }
   browserWindow.name = name;
