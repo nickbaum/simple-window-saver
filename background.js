@@ -14,45 +14,36 @@ var DEFAULT_NAME = "Window";
 
 /* BASIC STATE */
 // an array of the names of all saved windows
-var savedWindowNames = restoreFromLocalStorage("savedWindowNames", new Array());
+var savedWindowNames = restoreFromLocalStorage("savedWindowNames", []);
 
 // saved windows, keyed by name
 // If the savedWindow has an id, it is currently open.
 // Each savedWindow can only correspond to one open window at any given time.
-var savedWindows = new Object();
+var savedWindows = {};
 
 // map the ids of open windows to saved window names
 // used to respond to events
-var windowIdToName = new Object();
+var windowIdToName = {};
 
 /* EDGE CASES */
 // saved windows that aren't currently open, keyed by name
 // used to match new windows to saved windows that are still closed
-var closedWindows = new Object();
+var closedWindows = {};
 
 // Unfortunately, removing a tab doesn't give us a windowId
 // so we need to keep track of that mapping.
-var tabIdToSavedWindowId = new Object();
+var tabIdToSavedWindowId = {};
 
 // object that stores per-window flags as to whether API indicated
 // window-closing intention on tab removal
-var isWindowClosing = new Object();
+var isWindowClosing = {};
 
-
+// object that stores per-window flags as to whether API indicated
+// window-closing intention on tab removal
+var istabLoading = {};
 /* INIT */
 
 
-// Google Analytics
-var _gaq = _gaq || [];
-_gaq.push(['_setAccount', 'UA-18459718-1']);
-_gaq.push(['_setCustomVar', 1, 'windowCount', savedWindowNames.length, 1]);
-(function() {
-  var ga = document.createElement('script');
-  ga.type = 'text/javascript';
-  ga.async = true;
-  ga.src = 'https://www.google-analytics.com/ga.js';
-  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-})();
 
 
 // populate savedWindows from local storage
@@ -117,10 +108,14 @@ function windowsAreEqual(browserWindow, savedWindow) {
 // save a window
 // returns the saved window object
 function saveWindow(browserWindow, displayName) {
-  var displayName = (displayName == "") ? DEFAULT_NAME : displayName;
+   displayName = (displayName == "") ? DEFAULT_NAME : displayName;
   // handle duplicate names
   var name = displayName;
   var n = 0;
+//  var activewindow=
+  if(savedWindows){
+
+  }
   while(savedWindows[name]) {
     name = displayName + n;
     n++;
@@ -129,7 +124,6 @@ function saveWindow(browserWindow, displayName) {
   // add window to indexes
   savedWindowNames.push(name);
   localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
-
   storeWindow(browserWindow, name, displayName);
   if (browserWindow.id) {
     markWindowAsOpen(browserWindow);
@@ -142,10 +136,16 @@ function saveWindow(browserWindow, displayName) {
 // store a window object
 // returns the stored window
 function storeWindow(browserWindow, name, displayName) {
+  var savedWindow = savedWindows[name];
   browserWindow.name = name;
   browserWindow.displayName = displayName;
-
   savedWindows[name] = browserWindow;
+
+  //check if window is set for import and check if window is locked
+  console.log('storeWindow',browserWindow);
+  if(savedWindow&&savedWindow.locked){
+    return;
+  }
   localStorage[name] = JSON.stringify(browserWindow);
 
   return browserWindow;
@@ -211,10 +211,17 @@ function onWindowOpened(savedWindow, browserWindow) {
 }
 
 
+function lockWindow(name,locked){
+  savedWindows[name]['locked']=locked;
+  localStorage[name]=JSON.stringify(savedWindows[name]);
+}
+
 // removed a saved window
 function deleteSavedWindow(name) {
   var savedWindow = savedWindows[name];
-
+  if(savedWindow.locked){
+    return;
+  }
   var id = savedWindow.id;
   if (id) {
     markWindowAsClosed(savedWindow);

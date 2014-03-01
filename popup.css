@@ -36,12 +36,12 @@ li:hover {
   background-color: #eee;
 }
 
-li:hover > .delete {
+li:hover > .delete,li:hover > .lock {
   visibility: visible;
 }
-
 .text {
   display: inline;
+  padding-right: 42px;
 }
 
 .text:hover {
@@ -68,8 +68,6 @@ li:hover > .delete {
 /* DELETE */
 
 .delete {
-  margin-left: 20px;
-  float: right;
   display: inline;
   visibility: hidden;
   color: white;
@@ -80,8 +78,8 @@ li:hover > .delete {
   height: 20px;
   line-height: 16px;
   font-weight: bold;
-  position: relative;
-  top: 1px;
+  position: absolute;
+  right:6px;
 }
 
 .delete:hover {
@@ -96,11 +94,11 @@ li:hover > .delete {
   background-color: #fcc;
 }
 
-.deleted > .text:hover {
+.deleted > .text:hover,.lock > .text:hover {
   cursor: default;
 }
 
-.deleted > .delete {
+.deleted > .delete,.lock > .lock {
   display: none;
 }
 
@@ -115,10 +113,41 @@ li:hover > .delete {
   margin-left: 20px;
 }
 
-.undo:hover  {
+.undo:hover {
   cursor: pointer;
 }
 
+.lock {
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22iso-8859-1%22%3F%3E%3C!DOCTYPE%20svg%20PUBLIC%20%22-%2F%2FW3C%2F%2FDTD%20SVG%201.1%2F%2FEN%22%20%22http%3A%2F%2Fwww.w3.org%2FGraphics%2FSVG%2F1.1%2FDTD%2Fsvg11.dtd%22%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20%20width%3D%2212px%22%20height%3D%2214px%22%20viewBox%3D%220%200%2012%2014%22%20style%3D%22enable-background%3Anew%200%200%2012%2014%3B%22%20xml%3Aspace%3D%22preserve%22%3E%3Cpath%20fill%3D%22%23FFF%22%20d%3D%22M11%2C6V5c0-2.762-2.239-5-5-5S1%2C2.238%2C1%2C5v1H0v8h12V6H11z%20M6.5%2C9.847V12h-1V9.847C5.207%2C9.673%2C5%2C9.366%2C5%2C9%20c0-0.553%2C0.448-1%2C1-1s1%2C0.447%2C1%2C1C7%2C9.366%2C6.793%2C9.673%2C6.5%2C9.847z%20M9%2C6H3V5c0-1.657%2C1.343-3%2C3-3s3%2C1.343%2C3%2C3V6z%22%2F%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3Cg%3E%3C%2Fg%3E%3C%2Fsvg%3E');
+  background-position: center center;
+  display: inline;
+  visibility: hidden;
+  color: white;
+  background-color: #8b8b8b;
+  text-align: center;
+  border-radius: 10px;
+  width: 20px;
+  height: 20px;
+  font-weight: bold;
+  position: absolute;
+  right:30px;
+  background-repeat: no-repeat;
+
+}
+.lock:hover {
+  cursor: pointer;
+  background-color: #444444;
+}
+.lock {
+  color: black;
+  background-color: #a3a3a3;
+}
+.locked,.locked:hover{
+  right: 6px;
+  display: inline;
+  background-color: #111111;
+  visibility: visible;
+}
 /* FORM */
 
 #form {
@@ -126,12 +155,16 @@ li:hover > .delete {
   margin: 5px;
 }
 
-input {
+input,td {
   padding: 3px;
   font-weight: bold;
-  font-size:100%;
+  font-size: 100%;
   border: 3px solid #ccc;
   border-radius: 5px;
+}
+
+label,td {
+  background-color: #DDD;
 }
 
 input:focus {
@@ -158,5 +191,23 @@ input:focus {
 }
 
 #update {
+  display: none;
+}
+table{
+  width:100%
+}
+td{
+  text-align: center;
+  width: 50%;
+}
+#export, label {
+  border: none;
+  color: black;
+  padding: 0px 5px;
+  cursor: pointer;
+  width: 50%;
+}
+
+#import {
   display: none;
 }

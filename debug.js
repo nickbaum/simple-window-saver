@@ -31,7 +31,10 @@ debug.db = openDatabase('debug', '1.0', 'debug info', debug.dbSize);
 debug.db.transaction(function(tx) {
   tx.executeSql('CREATE TABLE IF NOT EXISTS event_log(ID INTEGER PRIMARY KEY ASC, event_type TEXT, window_id INTEGER, tab_id INTEGER, time_stamp DATETIME)', []);
 });
-
+debug.clear=function(){debug.db.transaction(function(tx){
+  tx.executeSql('Delete from event_log');
+});
+}
 // log an event
 // we attach this to the various event listeners below
 // TODO: re-enable logging only for saved windows
@@ -71,49 +74,49 @@ debug.addDebugUI = function(document){
 debug.onTabAttached = function(tabId, info) {
   debug.logEvent('tab_attached', info.newWindowId, tabId);
 }
-// chrome.tabs.onAttached.addListener(debug.onTabAttached);
+//chrome.tabs.onAttached.addListener(debug.onTabAttached);
 
 debug.onTabCreated = function(tab) {
   debug.logEvent('tab_created', tab.windowId, tab.id);
 }
-// chrome.tabs.onCreated.addListener(debug.onTabCreated);
+//chrome.tabs.onCreated.addListener(debug.onTabCreated);
 
 debug.onTabDetached = function(tabId, info) {
   debug.logEvent('tab_detached', info.oldWindowId, tabId);
 }
-// chrome.tabs.onDetached.addListener(debug.onTabDetached);
+//chrome.tabs.onDetached.addListener(debug.onTabDetached);
 
 debug.onTabMoved = function(tabId, info) {
   debug.logEvent('tab_moved', info.windowId, tabId);
 }
-// chrome.tabs.onMoved.addListener(debug.onTabMoved);
+//chrome.tabs.onMoved.addListener(debug.onTabMoved);
 
 debug.onTabRemoved = function(tabId) {
   debug.logEvent('tab_removed', tabIdToSavedWindowId[tabId], tabId);
 }
-chrome.tabs.onRemoved.addListener(debug.onTabRemoved);
+//chrome.tabs.onRemoved.addListener(debug.onTabRemoved);
 
 debug.onTabSelectionChanged = function(tabId, info) {
   debug.logEvent('tab_selected', info.windowId, tabId);
 }
-chrome.tabs.onSelectionChanged.addListener(debug.onTabSelectionChanged);
+//chrome.tabs.onSelectionChanged.addListener(debug.onTabSelectionChanged);
 
 debug.onTabUpdated = function(tabId, info, tab) {
   debug.logEvent('tab_updated', tab.windowId, tabId);
 }
-// chrome.tabs.onUpdated.addListener(debug.onTabUpdated);
+//chrome.tabs.onUpdated.addListener(debug.onTabUpdated);
 
 debug.onWindowCreated = function(window) {
   debug.logEvent('window_created', window.id, 0);
 }
-// chrome.windows.onCreated.addListener(debug.onWindowCreated);
+//chrome.windows.onCreated.addListener(debug.onWindowCreated);
 
 debug.onWindowFocusChanged = function(windowId) {
   debug.logEvent('window_focused', windowId, 0);
 }
-// chrome.windows.onFocusChanged.addListener(debug.onWindowFocusChanged);
+//chrome.windows.onFocusChanged.addListener(debug.onWindowFocusChanged);
 
 debug.onWindowRemoved = function(windowId) {
   debug.logEvent('window_removed', windowId, 0);
 }
-chrome.windows.onRemoved.addListener(debug.onWindowRemoved);
+//chrome.windows.onRemoved.addListener(debug.onWindowRemoved);

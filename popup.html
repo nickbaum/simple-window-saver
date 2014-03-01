@@ -1,9 +1,9 @@
 <html>
 <head>
 
-<link id="style" rel="stylesheet" type="text/css" href="popup.css" />
-
-<script type="text/javascript" src="popup.js"></script>
+  <link id="style" rel="stylesheet" type="text/css" href="popup.css"/>
+  <script type="text/javascript" src="saveas/filesaver.js"></script>
+  <script type="text/javascript" src="popup.js"></script>
 
 </head>
 
@@ -12,24 +12,42 @@
 
 <div>
   <form id="form">
-    Save as: <input type="text" id="nameInput" />
+    Save as: <input type="text" id="nameInput"/>
   </form>
   <div id="incognitoMsg">Note: you can't save incognito windows.</div>
   <ul id="savedWindowList">
-     <li id="template">
-       <span class="text">Name</span><!--
+    <li id="template">
+      <span class="text">Name</span><!--
      --><span class="delete">
-        &times;
+       &times;
+      </span><!--
+       --><span class="lock">
+
       </span><!--
      --><span class="undo">
         undo
       </span>
     </li>
   </ul>
+  <div class="manage">
+    <table>
+      <tr>
+        <td>
+          <input type="button" id="export" value="Export"></input>
+        </td>
+        <td>
+          <label for="import">Import</label>
+          <input id="import" type="file" value="Import"/>
+        </td>
+      </tr>
+    </table>
+  </div>
   <div id="footer">
     <span id="updated">
-      <img src="new.png" /> The extension has been updated (<a href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc" target="_blank">details</a>)<br/>
-      If you like this extension, please <a href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc" target="_blank">rate it</a>. Thanks!<br/>
+      <img src="new.png"/> The extension has been updated (<a
+        href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc" target="_blank">details</a>)<br/>
+      If you like this extension, please <a
+        href="https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc" target="_blank">rate it</a>. Thanks!<br/>
     </span>
     Bugs or suggestions? <a href="mailto:simpleWindowSaver@nickbaum.com" target="_blank">Contact me.</a>
   </div>
