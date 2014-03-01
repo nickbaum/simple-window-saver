@@ -49,6 +49,10 @@ chrome.tabs.onSelectionChanged.addListener(onTabSelectionChanged);
 
 
 function onTabUpdated(tabId, info, tab) {
+  if(info.status=='loading')
+    istabLoading[tabId]=true;
+  else
+    delete istabLoading[tabId];
   onTabChanged(tabId, tab.windowId);
 }
 chrome.tabs.onUpdated.addListener(onTabUpdated);
@@ -56,9 +60,12 @@ chrome.tabs.onUpdated.addListener(onTabUpdated);
 
 // updates a window in response to a tab event
 function onTabChanged(tabId, windowId) {
-  if (isWindowClosing[windowId])
+  if (isWindowClosing[windowId]||istabLoading[tabId])
     return;
   getPopulatedWindow(windowId, function(browserWindow) {
+    if (isWindowClosing[windowId]||istabLoading[tabId]){
+      return;
+    }
     // if the window is saved, we update it
     if (windowIdToName[windowId]) {
       tabIdToSavedWindowId[tabId] = windowId;

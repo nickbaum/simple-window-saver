@@ -38,7 +38,9 @@ var tabIdToSavedWindowId = {};
 // window-closing intention on tab removal
 var isWindowClosing = {};
 
-
+// object that stores per-window flags as to whether API indicated
+// window-closing intention on tab removal
+var istabLoading = {};
 /* INIT */
 
 
@@ -122,7 +124,6 @@ function saveWindow(browserWindow, displayName) {
   // add window to indexes
   savedWindowNames.push(name);
   localStorage.savedWindowNames = JSON.stringify(savedWindowNames);
-
   storeWindow(browserWindow, name, displayName);
   if (browserWindow.id) {
     markWindowAsOpen(browserWindow);
@@ -136,14 +137,15 @@ function saveWindow(browserWindow, displayName) {
 // returns the stored window
 function storeWindow(browserWindow, name, displayName) {
   var savedWindow = savedWindows[name];
+  browserWindow.name = name;
+  browserWindow.displayName = displayName;
+  savedWindows[name] = browserWindow;
+
   //check if window is set for import and check if window is locked
+  console.log('storeWindow',browserWindow);
   if(savedWindow&&savedWindow.locked){
     return;
   }
-  browserWindow.name = name;
-  browserWindow.displayName = displayName;
-
-  savedWindows[name] = browserWindow;
   localStorage[name] = JSON.stringify(browserWindow);
 
   return browserWindow;
