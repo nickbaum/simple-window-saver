@@ -38,6 +38,9 @@ var tabIdToSavedWindowId = new Object();
 // window-closing intention on tab removal
 var isWindowClosing = new Object();
 
+// window-loading flag. loading tabs can't effect saved state
+var istabLoading = {};
+
 
 /* INIT */
 
