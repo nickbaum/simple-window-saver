@@ -1,3 +1,19 @@
+Change log of fork emreberge/simple-window-saver
+===
+* Command+Ctrl+N opens extension popup
+* Tab: Switches between window selections in the popup
+* Enter: Selects focused window
+
+To install this extension manually
+===
+* git clone git@github.com:emreberge/simple-window-saver.git
+* In Chrome open "chrome://extensions/"
+* Select `Developer mode` checkbox
+* Press `Load unpacked extension...`
+* Navigate the folder this project was cloned into
+
+Original Readme
+===
 Name: Simple Window Saver
 Author: Nick Baum (simplewindowsaver@nickbaum.com)
 Download: https://chrome.google.com/extensions/detail/fpfmklldfnlcblofkhdeoohfppdoejdc

@@ -62,6 +62,7 @@ function appendWindowToList(savedWindow, currentWindowName) {
   var li = template.cloneNode(true);
   li.removeAttribute("id");
   li.setAttribute("data-name", savedWindow.name);
+  li.setAttribute("tabindex", "0");
   li.querySelector(".delete").addEventListener("click", deleteSavedWindow, false);
   li.querySelector(".undo").addEventListener("click", undoDeleteSavedWindow, false);
 
@@ -72,8 +73,10 @@ function appendWindowToList(savedWindow, currentWindowName) {
     text = "This is <b>" + text + "<\/b>.";
   } else if (savedWindow.id) {
     li.className = "open";
+    li.addEventListener("keypress", focusOpenWindow, false);
     li.addEventListener("click", focusOpenWindow, false);
   } else {
+    li.addEventListener("keypress", openSavedWindow, false);
     li.addEventListener("click", openSavedWindow, false);
   }
   setText(li, text);
@@ -102,6 +105,9 @@ function saveWindow(event) {
 // open a saved window
 // called when the user clicks the name of a saved window that is closed.
 function openSavedWindow(event) {
+  if (event.type === "keypress" && event.keyCode !== 13) {
+    return;
+  };
   event.preventDefault();
 
   var name = event.currentTarget.getAttribute("data-name");
@@ -115,6 +121,9 @@ function openSavedWindow(event) {
 // focus an open window
 // called when the user clicks the name of a saved window that is open.
 function focusOpenWindow(event) {
+  if (event.type === "keypress" && event.keyCode !== 13) {
+    return;
+  };
   event.preventDefault();
 
   var name = event.currentTarget.getAttribute("data-name");
