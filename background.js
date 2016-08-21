@@ -30,10 +30,6 @@ var windowIdToName = new Object();
 // used to match new windows to saved windows that are still closed
 var closedWindows = new Object();
 
-// Unfortunately, removing a tab doesn't give us a windowId
-// so we need to keep track of that mapping.
-var tabIdToSavedWindowId = new Object();
-
 // object that stores per-window flags as to whether API indicated
 // window-closing intention on tab removal
 var isWindowClosing = new Object();
@@ -155,9 +151,6 @@ function storeWindow(browserWindow, name, displayName) {
 function markWindowAsOpen(savedWindow) {
   delete closedWindows[savedWindow.name];
   windowIdToName[savedWindow.id] = savedWindow.name;
-  for (var i in savedWindow.tabs) {
-    tabIdToSavedWindowId[savedWindow.tabs[i].id] = savedWindow.id;
-  }
   updateBadgeForWindow(savedWindow.id);
 }
 
@@ -219,9 +212,6 @@ function deleteSavedWindow(name) {
   if (id) {
     markWindowAsClosed(savedWindow);
     updateBadgeForWindow(id);
-    for (var i in savedWindow.tabs) {
-      delete tabIdToSavedWindowId[savedWindow.tabs[i].id];
-    }
   }
 
   delete closedWindows[savedWindow.name];

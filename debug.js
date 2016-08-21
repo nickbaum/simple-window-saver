@@ -88,8 +88,8 @@ debug.onTabMoved = function(tabId, info) {
 }
 // chrome.tabs.onMoved.addListener(debug.onTabMoved);
 
-debug.onTabRemoved = function(tabId) {
-  debug.logEvent('tab_removed', tabIdToSavedWindowId[tabId], tabId);
+debug.onTabRemoved = function(tabId, removeInfo) {
+  debug.logEvent('tab_removed', removeInfo.windowId, tabId);
 }
 chrome.tabs.onRemoved.addListener(debug.onTabRemoved);
 

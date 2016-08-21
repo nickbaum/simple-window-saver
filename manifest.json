@@ -24,6 +24,7 @@
       "debug.js"
     ]
   },
+  "minimum_chrome_version": "25",
   "permissions": [
     "tabs"
   ]

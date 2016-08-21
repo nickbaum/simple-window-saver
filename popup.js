@@ -87,14 +87,11 @@ function appendWindowToList(savedWindow, currentWindowName) {
 // save window in background page and update display
 function saveWindow(event) {
   event.preventDefault();
-  chrome.windows.getCurrent(function(currentWindow) {
-    chrome.tabs.getAllInWindow(null, function(tabs) {
-      currentWindow.tabs = tabs;
-      savedWindow = backgroundPage.saveWindow(currentWindow, nameInput.value);
-      formEl.style.display = "none";
-      appendWindowToList(savedWindow, nameInput.value);
-      backgroundPage._gaq.push(['_trackEvent', 'popup', 'saveWindow', 'Value is tab count.', savedWindow.tabs.length]);
-    });
+  chrome.windows.getCurrent({populate: true}, function(currentWindow) {
+    savedWindow = backgroundPage.saveWindow(currentWindow, nameInput.value);
+    formEl.style.display = "none";
+    appendWindowToList(savedWindow, nameInput.value);
+    backgroundPage._gaq.push(['_trackEvent', 'popup', 'saveWindow', 'Value is tab count.', savedWindow.tabs.length]);
   });
 }
 
