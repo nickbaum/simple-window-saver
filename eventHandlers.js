@@ -58,7 +58,7 @@ chrome.tabs.onUpdated.addListener(onTabUpdated);
 function onTabChanged(tabId, windowId) {
   if (isWindowClosing[windowId])
     return;
-  getPopulatedWindow(windowId, function(browserWindow) {
+  chrome.windows.get(windowId, {populate: true}, function (browserWindow) {
     // if the window is saved, we update it
     if (windowIdToName[windowId]) {
       tabIdToSavedWindowId[tabId] = windowId;
@@ -80,21 +80,6 @@ function onTabChanged(tabId, windowId) {
     if (tabId) {
       updateBadgeForTab({id:tabId, windowId:windowId});
     }
-  });
-}
-
-
-// given a window id, fetches the corresponding window object
-// and tabs, and calls callback with the window as argument
-function getPopulatedWindow(windowId, callback) {
-  if (!windowId) {return;}
-  chrome.windows.get(windowId, function(browserWindow) {
-    if (!browserWindow) {return;}
-    chrome.tabs.getAllInWindow(windowId, function(tabs) {
-      if (!tabs) {return;}
-      browserWindow.tabs = tabs;
-      callback(browserWindow);
-    });
   });
 }
 
