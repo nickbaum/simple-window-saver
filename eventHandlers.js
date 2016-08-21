@@ -17,9 +17,6 @@ chrome.tabs.onCreated.addListener(onTabCreated);
 
 
 function onTabDetached(tabId, info) {
-  if (tabIdToSavedWindowId[tabId]) {
-    delete tabIdToSavedWindowId[tabId];
-  }
   onTabChanged(tabId, info.oldWindowId);
 }
 chrome.tabs.onDetached.addListener(onTabDetached);
@@ -32,10 +29,8 @@ chrome.tabs.onMoved.addListener(onTabMoved);
 
 
 function onTabRemoved(tabId, removeInfo) {
-  var windowId = tabIdToSavedWindowId[tabId];
-  delete tabIdToSavedWindowId[tabId];
-  isWindowClosing[windowId] = removeInfo.isWindowClosing;
-  onTabChanged(tabId, windowId);
+  isWindowClosing[removeInfo.windowId] = removeInfo.isWindowClosing;
+  onTabChanged(tabId, removeInfo.windowId);
 }
 chrome.tabs.onRemoved.addListener(onTabRemoved);
 
@@ -61,7 +56,6 @@ function onTabChanged(tabId, windowId) {
   chrome.windows.get(windowId, {populate: true}, function (browserWindow) {
     // if the window is saved, we update it
     if (windowIdToName[windowId]) {
-      tabIdToSavedWindowId[tabId] = windowId;
       var name = windowIdToName[windowId];
       var displayName = savedWindows[name].displayName;
       storeWindow(browserWindow, name, displayName);
