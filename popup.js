@@ -109,6 +109,8 @@ function openSavedWindow(event) {
 
   var savedWindow = backgroundPage.savedWindows[name];
   backgroundPage._gaq.push(['_trackEvent', 'popup', 'openWindow', 'Value is tab count.', savedWindow.tabs.length]);
+  
+  window.close();
 }
 
 
@@ -122,6 +124,8 @@ function focusOpenWindow(event) {
 
   chrome.windows.update(savedWindow.id, {focused: true});
   backgroundPage._gaq.push(['_trackEvent', 'popup', 'focusWindow']);
+  
+  window.close();
 }
 
 
