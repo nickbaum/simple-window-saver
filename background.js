@@ -54,6 +54,14 @@ _gaq.push(['_setCustomVar', 1, 'windowCount', savedWindowNames.length, 1]);
   var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 })();
 
+// v1.4: Migrate from old localStorage keys to new
+for(var i in savedWindowNames) {
+  var name = savedWindowNames[i];
+  if(!localStorage[savedWindowStorageKey(name)] && localStorage[name]) {
+    localStorage[savedWindowStorageKey(name)] = localStorage[name];
+    delete localStorage[name];
+  }
+}
 
 // populate savedWindows from local storage
 // as we go, try matching them to open windows
